@@ -6,7 +6,23 @@ import dev.mathops.persistence.criteria.AbstractFieldCriterion;
 import java.util.Arrays;
 
 /**
- * An immutable definition of query criteria to select records from a table.
+ * An immutable definition of query criteria to select rows from a table.
+ *
+ * <p>
+ * When performing queries, updates, deletes, and counts, applications can provide selection criteria to determine which
+ * rows from a table are considered.  This is provided to the database layer in the form of an instance of this class.
+ *
+ * <p>
+ * This class stores a reference to the table being queried, as well as an array of zero or more field criterion
+ * objects. If no field criterion objects are provided, every row in the table is to be considered.  If one or more
+ * criterion objects are provided, only rows that satisfy ALL supplied criteria will be considered.
+ *
+ * <p>
+ * Field criterion objects are concrete subclasses of the {@link AbstractFieldCriterion} class, and are either one of a
+ * pre-defined set of criteria object types, or a custom criteria provided by the application.  Every implementation of
+ * the database layer for a particular database engine or product will have to interpret these selection criteria
+ * objects and convert them into, for example, SQL "where" clauses, or other forms of conditions as appropriate to the
+ * product.
  */
 public final class SelectionCriteria {
 
@@ -16,7 +32,7 @@ public final class SelectionCriteria {
     /** The table for which this query criteria applies. */
     private final Table table;
 
-    /** A collection of criteria that fields may match (only records matching all criteria are matched). */
+    /** A collection of criteria that fields may match (only rows matching all criteria are matched). */
     private final AbstractFieldCriterion[] criteria;
 
     /**

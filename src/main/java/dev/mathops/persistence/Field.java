@@ -13,6 +13,62 @@ import java.util.Objects;
 
 /**
  * An immutable definition of a database table field.
+ *
+ * <p>Each field defined within a table is represented by an instance of this class, which stores the field name (unique
+ * within the table), the field's data type (see below), the field's role in the table (see below), and zero or more
+ * constraints that values for this field must obey.
+ *
+ * <p>Field objects are suitable for use as map keys, and implement {@code Comparable&lt;Field&gt;} so they can be used
+ * in contexts that require a well-defined order (such as keys in a {@code TreeMap}).  Ordering is based on field name
+ * then field data type, then field's role.
+ *
+ * <h2>Field Data Types</h2>
+ *
+ * The data types supported by fields, along with the corresponding Java object type and the pre-defined types of
+ * constraint that a field may define for each type are listed below:
+ * <dl>
+ * <dt>String (java.lang.String)</dt>
+ *     <dd>StringEnumeratedConstraint, which defines a fixed list of allowed String values.</dd>
+ *     <dd>StringLengthConstraint, which defines a minimum and maximum allowed length.</dd>
+ * <dt>Boolean (java.lang.Boolean)</dt>
+ * <dt>Byte (java.lang.Byte)</dt>
+ *     <dd>ByteRangeConstraint, which defines a minimum and maximum allowed byte value.</dd>
+ * <dt>Integer (java.lang.Integer)</dt>
+ *     <dd>IntegerRangeConstraint, which defines a minimum and maximum allowed int value.</dd>
+ * <dt>Long (java.lang.Long)</dt>
+ *     <dd>LongRangeConstraint, which defines a minimum and maximum allowed long value.</dd>
+ * <dt>Float (java.lang.Float)</dt>
+ *     <dd>FloatRangeConstraint, which defines a minimum and maximum allowed float value and specified whether NaN or
+ *         infinite values are allowed.</dd>
+ * <dt>Double (java.lang.Double)</dt>
+ *     <dd>DoubleRangeConstraint, which defines a minimum and maximum allowed double value and specified whether NaN or
+ *         infinite values are allowed.</dd>
+ * <dt>Blob (java.sql.Blob)</dt>
+ * <dt>LocalDate (java.time.LocalDate)</dt>
+ * <dt>LocalTime (java.time.LocalTime)</dt>
+ * <dt>LocalDateTime (java.time.LocalDateTime)</dt>
+ * </dl>
+ *
+ * <h2>Field Roles</h2>
+ *
+ * The roles within their containing table that a field may be assigned include:
+ * <dl>
+ * <dt>Partition Key</dt>
+ *     <dd>The field participates in the primary key. The tuple of all fields that participate in the primary key
+ *         together must have a unique value for each record in the table.</dd>
+ *     <dd>The field can be used to partition data across multiple servers.  Fields used as partition keys should be
+ *         chosen so the majority of queries will select only records with the same value for the partition key.</dd>
+ * <dt>Clustering Key</dt>
+ *     <dd>The field participates in the primary key.</dd>
+ *     <dd>The field can be used to cluster data within a single partition for faster selection of data by queries.</dd>
+ * <dt>Not-null</dt>
+ *     <dd>The field does NOT participate in the primary key.</dd>
+ *     <dd>The field may not have a NULL value.  It must have a specified value in each record.  Note that an empty
+ *         string is not considered a NULL value.</dd>
+ * <dt>Nullable</dt>
+ *     <dd>The field does NOT participate in the primary key.</dd>
+ *     <dd>The field may have any value, including NULL.</dd>
+ * </dl>
  */
 public final class Field implements Comparable<Field> {
 

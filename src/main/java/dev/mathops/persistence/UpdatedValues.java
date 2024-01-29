@@ -6,12 +6,23 @@ import dev.mathops.persistence.constraint.AbstractFieldConstraint;
 import java.util.Arrays;
 
 /**
- * An immutable container for updated values for an update operation.  This class distinguishes from "do not update
+ * An immutable container for updated values for an update operation.  This class distinguishes between "do not update
  * a given field" and "update the field to NULL".
+ *
+ * <p>
+ * When performing updates, applications need to supply new values for a subset of the fields in a table, but the
+ * {@link Row} class is unsuitable for this task since every row must have values that match its constraints for
+ * every field.
+ *
+ * <p>
+ * Therefore, this class is provided as an immutable container for new values for an update operation. This class
+ * contains a reference to the table being updated, and a list of new field values, some of which may be null to
+ * indicate the corresponding field is not to be updated. A special {@link NullValue} object is provided to allow
+ * applications to specify that a field's value is to be updated to NULL.
  */
 public final class UpdatedValues {
 
-    /** The table to which this record belongs. */
+    /** The table whose rows are being updated. */
     private final Table table;
 
     /**
@@ -22,9 +33,9 @@ public final class UpdatedValues {
 
     /**
      * Constructs a new {@code UpdatedValues}.  The constructor ensures that the constructed object is valid with
-     * respect to the fields define din the table.
+     * respect to the fields defined in the table.
      *
-     * @param theTable       the table to which this record belongs
+     * @param theTable       the table whose rows are being updated
      * @param theFieldValues the field values, indexed as in {@code theTable}, where {@code null} indicates the field
      *                       is not to be updated; a {@code NullValue} object indicates the field is to be updated to
      *                       NULL, and where trailing null values (non-updated fields) may be omitted

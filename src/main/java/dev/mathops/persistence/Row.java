@@ -6,28 +6,37 @@ import dev.mathops.persistence.constraint.AbstractFieldConstraint;
 import java.util.Arrays;
 
 /**
- * An immutable generalized record object, which references a "Table" object (with field definitions), and which stores
- * an array of field values.
+ * An immutable generalized row object, which references a {@link Table} object (with field definitions), and which
+ * stores an immutable array of field values.
+ *
+ * <p>
+ * A row stores a reference to the table to which it belongs so field values can be interpreted at runtime.  Each field
+ * value in a row has either the Java object type that corresponds to the type of the field, or is {@code null}.
+ *
+ * <p>
+ * Field values are guaranteed to satisfy the constraints of the corresponding field definition.  When rows are queried
+ * from the underlying database, they are validated against these constraints, and invalid rows are discarded, and the
+ * event is logged.
  */
-public final class Record {
+public final class Row {
 
-    /** The table to which this record belongs. */
+    /** The table to which this row belongs. */
     private final Table table;
 
-    /** Field values, where null values indicate fields whose table record was NULL. */
+    /** Field values, where {@code null} values indicate fields whose field value in the database was NULL. */
     private final Object[] fieldValues;
 
     /**
-     * Constructs a new {@code Record}.  The constructor ensures that the constructed object is valid with respect to
+     * Constructs a new {@code Row}.  The constructor ensures that the constructed object is valid with respect to
      * the fields define din the table.
      *
-     * @param theTable the table to which this record belongs
+     * @param theTable the table to which this row belongs
      * @param theFieldValues the field values, indexed as in {@code theTable}, where trailing null values may be
-     *                       omitted (if no values are permitted, the result is a record with all null field values)
+     *                       omitted (if no values are permitted, the result is a row with all null field values)
      * @throws IllegalArgumentException if the table name is null, there are more field values provided than the
      * table defines, or a field value does not satisfy a field role or constraint
      */
-    public Record(final Table theTable, final Object... theFieldValues) throws IllegalArgumentException {
+    public Row(final Table theTable, final Object... theFieldValues) throws IllegalArgumentException {
 
         if (theTable == null) {
             throw new IllegalArgumentException("Table may not be null");
@@ -91,6 +100,6 @@ public final class Record {
 
         final String fieldValuesStr = Arrays.toString(this.fieldValues);
 
-        return SimpleBuilder.concat("Record{table=", this.table, ", fieldValues=", fieldValuesStr, "}");
+        return SimpleBuilder.concat("Row{table=", this.table, ", fieldValues=", fieldValuesStr, "}");
     }
 }
