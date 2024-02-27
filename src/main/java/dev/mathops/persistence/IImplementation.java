@@ -17,6 +17,17 @@ public interface IImplementation {
     AbstractFieldCriterion[] EMPTY_CRITERION_ARRAY = new AbstractFieldCriterion[0];
 
     /**
+     * Attempts to ensure all required database tables or filesystem or other structures that are needed to store a
+     * table's data are present and in a workable state.
+     *
+     * @param table  the table to validate
+     * @param action the action to take
+     * @return the status of the table after the operation
+     * @throws PersistenceException if there was an error validating the table
+     */
+    TableValidationStatus validateTable(Table table, ETableValidationAction action) throws PersistenceException;
+
+    /**
      * Returns the number of rows that match a set of field criteria.
      *
      * @param table       the table to query
