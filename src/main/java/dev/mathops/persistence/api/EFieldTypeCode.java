@@ -23,7 +23,7 @@ public enum EFieldTypeCode {
     /** A Unicode string whose length can be described by a signed 4-byte value. */
     STRING_4((byte) 0x06),
 
-    /** A Boolean value, represented as a byte with vlaue 0x00 (FALSE) or 0x01 (TRUE). */
+    /** A Boolean value, represented as a byte with value 0x00 (FALSE) or 0x01 (TRUE). */
     BOOLEAN((byte) 0x07),
 
     /** An 8-bit signed integer or enumerated value. */
@@ -72,8 +72,8 @@ public enum EFieldTypeCode {
     /** A table definition object. */
     TABLE((byte) 0x20),
 
-    /** A record object. */
-    RECORD((byte) 0x21),
+    /** A row object. */
+    ROW((byte) 0x21),
 
     /** A selection criteria object. */
     SELECTION_CRITERIA((byte) 0x22),
