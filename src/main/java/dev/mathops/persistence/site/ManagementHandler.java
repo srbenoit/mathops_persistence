@@ -104,13 +104,13 @@ public final class ManagementHandler implements HttpHandler {
 
         htm.addln("<html><head></head><body>");
 
-        htm.addln("<form>");
+        htm.addln("<form action='login.html' method='POST'>");
         htm.addln("<p><label for='u'>Username:</label> <input type='text' id='u' name='u'/></p>");
         htm.addln("<p><label for='p'>Password:</label> <input type='password' id='p' name='p'/></p>");
+        htm.addln("<p><input type='submit'/></p>");
         htm.addln("</form>");
 
         htm.addln("</body></html>");
-
 
         sendResponse(htm, exchange);
     }
