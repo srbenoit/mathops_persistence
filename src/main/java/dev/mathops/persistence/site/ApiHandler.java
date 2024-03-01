@@ -13,14 +13,22 @@ import java.io.OutputStream;
  */
 public final class ApiHandler implements HttpHandler {
 
+    /** The number of characters of URI path used to select this handler. */
+    private final int prefixLength;
+
+    /** The directory in which to find configuration files. */
+    private final File configDir;
+
     /**
      * Constructs a new {@code ApiHandler}.
      *
-     * @param configDir the directory in which to find configuration files
+     * @param thePrefixLength the number of characters of URI path used to select this handler
+     * @param theConfigDir the directory in which to find configuration files
      */
-    ApiHandler(final File configDir) {
+    ApiHandler(final int thePrefixLength, final File theConfigDir) {
 
-        // No action
+        this.prefixLength = thePrefixLength;
+        this.configDir = theConfigDir;
     }
 
     /**

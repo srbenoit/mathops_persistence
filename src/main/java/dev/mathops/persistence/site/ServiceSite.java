@@ -12,6 +12,12 @@ import java.net.InetSocketAddress;
  */
 public final class ServiceSite {
 
+    /** The prefix to select the API handler. */
+    private static final String API_PREFIX = "/api";
+
+    /** The prefix to select the MGT handler. */
+    private static final String MGT_PREFIX = "/mgt";
+
     /**
      * Constructs a new {@code ServiceSite}.
      */
@@ -92,8 +98,11 @@ public final class ServiceSite {
             try {
                 final HttpServer server = HttpServer.create(new InetSocketAddress(8000), 0);
 
-                server.createContext("/api", new ApiHandler(configDir));
-                server.createContext("/mgt", new ManagementHandler(configDir));
+                final int apiPrefixLen = API_PREFIX.length();
+                server.createContext(API_PREFIX, new ApiHandler(apiPrefixLen, configDir));
+
+                final int mgtPrefixLen = MGT_PREFIX.length();
+                server.createContext(MGT_PREFIX, new ManagementHandler(mgtPrefixLen, configDir));
 
                 server.setExecutor(null); // creates a default executor
                 server.start();
