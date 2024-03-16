@@ -1,12 +1,11 @@
 package dev.mathops.persistence.site;
 
-import com.sun.net.httpserver.HttpExchange;
-import com.sun.net.httpserver.HttpHandler;
+import dev.mathops.persistence.site.session.SessionManager;
+import io.undertow.server.HttpHandler;
+import io.undertow.server.HttpServerExchange;
+import io.undertow.util.Headers;
 
 import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 
 /**
  * A handler for API requests.
@@ -19,32 +18,36 @@ public final class ApiHandler implements HttpHandler {
     /** The directory in which to find configuration files. */
     private final File configDir;
 
+    /** The session manager. */
+    private final SessionManager sessionMgr;
+
     /**
      * Constructs a new {@code ApiHandler}.
      *
      * @param thePrefixLength the number of characters of URI path used to select this handler
-     * @param theConfigDir the directory in which to find configuration files
+     * @param theConfigDir    the directory in which to find configuration files
+     * @param theSessionMgr   the session manager
      */
-    ApiHandler(final int thePrefixLength, final File theConfigDir) {
+    ApiHandler(final int thePrefixLength, final File theConfigDir, final SessionManager theSessionMgr) {
 
         this.prefixLength = thePrefixLength;
         this.configDir = theConfigDir;
+        this.sessionMgr = theSessionMgr;
     }
 
     /**
-     * Handles a request.
+     * Handles an HTTP exchange.
      *
-     * @param exchange the exchange containing the request from the client and used to send the response
-     * @throws IOException if there is an error reading the request body or writing the response
+     * @param exchange the exchange
      */
-    public void handle(final HttpExchange exchange) throws IOException {
+    @Override
+    public void handleRequest(final HttpServerExchange exchange) throws Exception {
 
-        final InputStream is = exchange.getRequestBody();
-        is.read(); // .. read the request body
-        final String response = "This is the response from the API handler";
-        exchange.sendResponseHeaders(200, response.length());
-        final OutputStream os = exchange.getResponseBody();
-        os.write(response.getBytes());
-        os.close();
+        if (exchange.isInIoThread()) {
+            exchange.dispatch(this);
+        } else {
+            exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, "text/plain");
+            exchange.getResponseSender().send("Hello API: " + exchange.getRequestPath());
+        }
     }
 }
