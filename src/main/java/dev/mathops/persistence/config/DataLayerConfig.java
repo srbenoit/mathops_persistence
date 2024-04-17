@@ -6,15 +6,27 @@ import dev.mathops.commons.log.Log;
 import dev.mathops.commons.parser.ParsingException;
 import dev.mathops.commons.parser.json.JSONObject;
 import dev.mathops.commons.parser.json.JSONParser;
+import dev.mathops.persistence.EFieldRole;
+import dev.mathops.persistence.EFieldType;
+import dev.mathops.persistence.Field;
+import dev.mathops.persistence.Table;
+import dev.mathops.persistence.constraint.AbstractFieldConstraint;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 /**
  * A container for all configuration state, with utility methods to load and store the state.
  */
 public final class DataLayerConfig {
+
+    /** A zero-length array of fields, used to convert a list to an array. */
+    private static final Field[] EMPTY_FIELD_ARRAY = new Field[0];
+
+    /** A zero-length array of field constraints, used to convert a list to an array. */
+    private static final AbstractFieldConstraint<?>[] EMPTY_CONSTRAINT_ARRAY = new AbstractFieldConstraint<?>[0];
 
     /** The configuration directory. */
     private final File configDir;
@@ -163,11 +175,9 @@ public final class DataLayerConfig {
                     dirPath);
             this.errors.add(msg);
             ok = false;
-        }
-
-        if (contexts instanceof Object[] contextsArray) {
+        } else if (contexts instanceof final Object[] contextsArray) {
             for (final Object inner : contextsArray) {
-                if (inner instanceof JSONObject contextObj) {
+                if (inner instanceof final JSONObject contextObj) {
                     ok &= isSchemaContextOk(contextObj, config);
                 } else {
                     final String dirPath = this.configDir.getAbsolutePath();
@@ -193,11 +203,9 @@ public final class DataLayerConfig {
                     dirPath);
             this.errors.add(msg);
             ok = false;
-        }
-
-        if (tables instanceof Object[] tablesArray) {
+        } else if (tables instanceof final Object[] tablesArray) {
             for (final Object inner : tablesArray) {
-                if (inner instanceof JSONObject tableObj) {
+                if (inner instanceof final JSONObject tableObj) {
                     ok &= isSchemaTableOk(tableObj, config);
                 } else {
                     final String dirPath = this.configDir.getAbsolutePath();
@@ -243,24 +251,234 @@ public final class DataLayerConfig {
      * Attempts to extract context configuration from a JSON object within a schema configuration.
      *
      * @param obj the JSON object
-     * @param config the schema to which to add the context configuration if valid
+     * @param schema the schema to which to add the context configuration if valid
      * @return {@code true} if a usable state was loaded (possibly with warnings), {@code false} if not
      */
-    private boolean isSchemaContextOk(final JSONObject obj, final SchemaConfig config) {
+    private boolean isSchemaContextOk(final JSONObject obj, final SchemaConfig schema) {
 
-        return false;
+        boolean ok = true;
+
+        final String contextName = obj.getStringProperty("context-name");
+        if (contextName == null) {
+            final String dirPath = this.configDir.getAbsolutePath();
+            final String schemaName = schema.getName();
+            final String msg = SimpleBuilder.concat("Missing context name in context in 'schemas.json' [",
+                    schemaName, "] in ", dirPath);
+            this.errors.add(msg);
+            ok = false;
+        } else {
+            final SchemaContextConfig context = new SchemaContextConfig(contextName);
+            schema.addContext(context);
+        }
+
+        return ok;
     }
 
     /**
      * Attempts to extract table configuration from a JSON object within a schema configuration.
      *
      * @param obj the JSON object
-     * @param config the schema to which to add the table configuration if valid
+     * @param schema the schema to which to add the table configuration if valid
      * @return {@code true} if a usable state was loaded (possibly with warnings), {@code false} if not
      */
-    private boolean isSchemaTableOk(final JSONObject obj, final SchemaConfig config) {
+    private boolean isSchemaTableOk(final JSONObject obj, final SchemaConfig schema) {
 
-        return false;
+        boolean ok = true;
+
+        final String tableName = obj.getStringProperty("table-name");
+        if (tableName == null) {
+            final String dirPath = this.configDir.getAbsolutePath();
+            final String msg = SimpleBuilder.concat("Missing table name in table in 'schemas.json' in ", dirPath);
+            this.errors.add(msg);
+            ok = false;
+        } else {
+            final Object fields = obj.getProperty("fields");
+            if (fields == null) {
+                final String dirPath = this.configDir.getAbsolutePath();
+                final String schemaName = schema.getName();
+                final String msg = SimpleBuilder.concat("Missing fields array in '", tableName,
+                        "' table in 'schemas.json' [", schemaName, "] in ", dirPath);
+                this.errors.add(msg);
+                ok = false;
+            } else if (fields instanceof final Object[] tablesArray) {
+
+                final List<Field> fieldsList = new ArrayList<>(10);
+
+                for (final Object inner : tablesArray) {
+                    if (inner instanceof final JSONObject tableObj) {
+                        ok &= isTableFieldOk(tableObj, schema, tableName, fieldsList);
+                    } else {
+                        final String dirPath = this.configDir.getAbsolutePath();
+                        final String clsName = inner.getClass().getName();
+                        final String schemaName = schema.getName();
+                        final String msg = SimpleBuilder.concat("Unexpected object type (", clsName,
+                                "), expecting OBJECT with table definition in 'schemas.json' [", schemaName, "] in ",
+                                dirPath);
+                        this.warnings.add(msg);
+                    }
+                }
+
+                if (ok) {
+                    final String schemaName = schema.getName();
+                    final Field[] fieldArray = fieldsList.toArray(EMPTY_FIELD_ARRAY);
+                    final Table table = new Table(schemaName, tableName, fieldArray);
+                    schema.addTable(table);
+                }
+            } else {
+                final String dirPath = this.configDir.getAbsolutePath();
+                final String clsName = fields.getClass().getName();
+                final String schemaName = schema.getName();
+                final String msg = SimpleBuilder.concat("Unexpected object type (", clsName,
+                        "), expecting array of contexts in 'schemas.json' [", schemaName, "] in ", dirPath);
+                this.warnings.add(msg);
+            }
+        }
+
+        return ok;
+    }
+
+    /**
+     * Attempts to extract field configuration from a JSON object within a table configuration.
+     *
+     * @param obj the JSON object
+     * @param schema the schema to which to add the table configuration if valid
+     * @param tableName the table name, for diagnostic logging
+     * @param fieldsList the list to which to add the parsed field, if valid
+     * @return {@code true} if a usable state was loaded (possibly with warnings), {@code false} if not
+     */
+    private boolean isTableFieldOk(final JSONObject obj, final SchemaConfig schema, final String tableName,
+                                   final Collection<Field> fieldsList) {
+
+        boolean ok = true;
+
+        final String fieldName = obj.getStringProperty("field-name");
+        if (fieldName == null) {
+            final String dirPath = this.configDir.getAbsolutePath();
+            final String schemaName = schema.getName();
+            final String msg = SimpleBuilder.concat("Missing field name in '", tableName, "' table in 'schemas.json' [",
+                    schemaName, "] in ", dirPath);
+            this.errors.add(msg);
+            ok = false;
+        } else {
+            final String type = obj.getStringProperty("type");
+            if (type == null) {
+                final String dirPath = this.configDir.getAbsolutePath();
+                final String schemaName = schema.getName();
+                final String msg = SimpleBuilder.concat("Missing field type in '", tableName,
+                        "' table in 'schemas.json' [", schemaName, "] in ", dirPath);
+                this.errors.add(msg);
+                ok = false;
+            } else {
+                final EFieldType fieldType = EFieldType.forName(type);
+                if (fieldType == null) {
+                    final String dirPath = this.configDir.getAbsolutePath();
+                    final String schemaName = schema.getName();
+                    final String msg = SimpleBuilder.concat("Invalid field type in '", tableName,
+                            "' table in 'schemas.json' [", schemaName, "] in ", dirPath);
+                    this.errors.add(msg);
+                    ok = false;
+                } else {
+                    final String role = obj.getStringProperty("role");
+                    if (role == null) {
+                        final String dirPath = this.configDir.getAbsolutePath();
+                        final String schemaName = schema.getName();
+                        final String msg = SimpleBuilder.concat("Missing field role in '", tableName,
+                                "' table in 'schemas.json' [", schemaName, "] in ", dirPath);
+                        this.errors.add(msg);
+                        ok = false;
+                    } else {
+                        final EFieldRole fieldRole = EFieldRole.forName(role);
+                        if (fieldRole == null) {
+                            final String dirPath = this.configDir.getAbsolutePath();
+                            final String schemaName = schema.getName();
+                            final String msg = SimpleBuilder.concat("Invalid field role in '", tableName,
+                                    "' table in 'schemas.json' [", schemaName, "] in ", dirPath);
+                            this.errors.add(msg);
+                            ok = false;
+                        } else {
+                            final String description = obj.getStringProperty("role");
+                            if (description == null) {
+                                final String dirPath = this.configDir.getAbsolutePath();
+                                final String schemaName = schema.getName();
+                                final String msg = SimpleBuilder.concat("Missing field description in '", tableName,
+                                        "' table in 'schemas.json' [", schemaName, "] in ", dirPath);
+                                this.warnings.add(msg);
+                            }
+
+                            final List<AbstractFieldConstraint<?>> constraintsList = new ArrayList<>(10);
+
+                            final Object constraints = obj.getProperty("constraints");
+                            if (constraints == null) {
+                                final String dirPath = this.configDir.getAbsolutePath();
+                                final String schemaName = schema.getName();
+                                final String msg = SimpleBuilder.concat("Missing constraints array in '", tableName,
+                                        "' table in 'schemas.json' [", schemaName, "] in ", dirPath);
+                                this.errors.add(msg);
+                                ok = false;
+                            } else if (constraints instanceof final Object[] tablesArray) {
+                                for (final Object inner : tablesArray) {
+                                    if (inner instanceof final JSONObject tableObj) {
+                                        ok &= isFieldConstraintOk(tableObj, constraintsList);
+                                    } else {
+                                        final String dirPath = this.configDir.getAbsolutePath();
+                                        final String clsName = inner.getClass().getName();
+                                        final String schemaName = schema.getName();
+                                        final String msg = SimpleBuilder.concat("Unexpected object type (", clsName,
+                                                "), expecting OBJECT with table definition in '", tableName,
+                                                "' table in 'schemas.json' [", schemaName, "] in ", dirPath);
+                                        this.warnings.add(msg);
+                                    }
+                                }
+                            } else {
+                                final String dirPath = this.configDir.getAbsolutePath();
+                                final String clsName = constraints.getClass().getName();
+                                final String schemaName = schema.getName();
+                                final String msg = SimpleBuilder.concat("Unexpected object type (", clsName,
+                                        "), expecting array of constraints in '", tableName,
+                                        "' table in 'schemas.json' [", schemaName, "] in ", dirPath);
+                                this.warnings.add(msg);
+                            }
+
+                            if (ok) {
+                                final AbstractFieldConstraint<?>[] constraintsArray =
+                                        constraintsList.toArray(EMPTY_CONSTRAINT_ARRAY);
+
+                                final Field field = new Field(fieldName, fieldType, fieldRole, description,
+                                        constraintsArray);
+                                fieldsList.add(field);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return ok;
+    }
+
+    /**
+     * Attempts to extract field configuration from a JSON object within a table configuration.
+     *
+     * <pre>
+     * {"type": "byte-range", "min": 1, "max": 10}
+     * {"type": "double-range", "allow": "...EFloatingPointAllow.name...", "min": 1.0, "max": 10.0}
+     * {"type": "float-range", "allow": "...EFloatingPointAllow.name...", "min": 1.0, "max": 10.0}
+     * {"type": "integer-range", "min": 1, "max": 10}
+     * {"type": "long-range", "min": 1, "max": 10}
+     * {"type": "string-enum", "values": ["A", "B", "C"]}
+     * {"type": "string-length", "min": 1, "max": 10}
+     * </pre>
+     *
+     * @param obj the JSON object
+     * @param constraintsList the list to which to add the parsed constraint, if valid
+     * @return {@code true} if a usable state was loaded (possibly with warnings), {@code false} if not
+     */
+    private boolean isFieldConstraintOk(final JSONObject obj,
+                                   final Collection<AbstractFieldConstraint<?>> constraintsList) {
+
+        boolean ok = true;
+
+        return ok;
     }
 
     /**

@@ -1,6 +1,9 @@
 package dev.mathops.persistence;
 
 import dev.mathops.commons.builder.SimpleBuilder;
+import dev.mathops.commons.log.Log;
+
+import java.util.Locale;
 
 /**
  * Roles within a table that a field can take on.
@@ -48,5 +51,24 @@ public enum EFieldRole {
         final String nullableStr = Boolean.toString(this.nullable);
 
         return SimpleBuilder.concat("EFieldRole{nullable=", nullableStr, "}");
+    }
+
+    /**
+     * Returns the field role with a specified name.
+     * @param name the name (case-insensitive)
+     * @return the field role
+     */
+    public static EFieldRole forName(final String name) {
+
+        EFieldRole result = null;
+
+        try {
+            final String upper = name.toUpperCase(Locale.ROOT);
+            result = EFieldRole.valueOf(upper);
+        } catch (final IllegalArgumentException ex) {
+            Log.warning("Attempt to parse '", name, "' as field role.");
+        }
+
+        return result;
     }
 }

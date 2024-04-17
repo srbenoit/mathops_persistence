@@ -68,7 +68,7 @@ public class Table implements Comparable<Table> {
      * @param theName the table name
      * @param theFields the ordered list of fields
      */
-    protected Table(final String theSchema, final String theName, final Field... theFields) {
+    public Table(final String theSchema, final String theName, final Field... theFields) {
 
         if (theSchema == null || theSchema.isBlank()) {
             throw new IllegalArgumentException("Schema name may not be null or blank");

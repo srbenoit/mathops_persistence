@@ -3,7 +3,7 @@ package dev.mathops.persistence.config;
 /**
  * The configuration of a context within a schema.
  */
-public class SchemaContextConfig {
+public final class SchemaContextConfig {
 
     /** The context name (unique within the schema). */
     private final String name;
@@ -16,5 +16,15 @@ public class SchemaContextConfig {
     SchemaContextConfig(final String theName) {
 
         this.name = theName;
+    }
+
+    /**
+     * Gets the context name.
+     *
+     * @return the context name
+     */
+    public String getName() {
+
+        return this.name;
     }
 }

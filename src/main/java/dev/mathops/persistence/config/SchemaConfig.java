@@ -47,7 +47,7 @@ import java.util.Map;
  * ]
  * </pre>
  */
-public class SchemaConfig {
+public final class SchemaConfig {
 
     /** The schema name. */
     private final String name;
@@ -72,13 +72,34 @@ public class SchemaConfig {
     }
 
     /**
+     * Gets the schema name.
+     *
+     * @return the schema name
+     */
+    public String getName() {
+
+        return this.name;
+    }
+
+    /**
      * Gets the number of contexts this schema defines.
      *
      * @return the number of contexts
      */
-    public int getNumContexts() {
+    int getNumContexts() {
 
         return this.contexts.size();
+    }
+
+    /**
+     * Adds a schema context configuration.
+     *
+     * @param theContext the context configuration
+     */
+    void addContext(final SchemaContextConfig theContext) {
+
+        final String contextName = theContext.getName();
+        this.contexts.put(contextName, theContext);
     }
 
     /**
@@ -86,8 +107,19 @@ public class SchemaConfig {
      *
      * @return the number of tables
      */
-    public int getNumTables() {
+    int getNumTables() {
 
         return this.tables.size();
+    }
+
+    /**
+     * Adds a schema table configuration.
+     *
+     * @param theTable the table configuration
+     */
+    void addTable(final Table theTable) {
+
+        final String tableName = theTable.getName();
+        this.tables.put(tableName, theTable);
     }
 }

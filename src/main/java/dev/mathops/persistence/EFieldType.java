@@ -1,11 +1,13 @@
 package dev.mathops.persistence;
 
 import dev.mathops.commons.builder.SimpleBuilder;
+import dev.mathops.commons.log.Log;
 
 import java.sql.Blob;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.Locale;
 
 /**
  * Supported types of database field.
@@ -69,5 +71,24 @@ public enum EFieldType {
         final String clsName = this.cls.getName();
 
         return SimpleBuilder.concat("EFieldType{cls=", clsName, "}");
+    }
+
+    /**
+     * Returns the field type with a specified name.
+     * @param name the name (case-insensitive)
+     * @return the field type
+     */
+    public static EFieldType forName(final String name) {
+
+        EFieldType result = null;
+
+        try {
+            final String upper = name.toUpperCase(Locale.ROOT);
+            result = EFieldType.valueOf(upper);
+        } catch (final IllegalArgumentException ex) {
+            Log.warning("Attempt to parse '", name, "' as field type.");
+        }
+
+        return result;
     }
 }
