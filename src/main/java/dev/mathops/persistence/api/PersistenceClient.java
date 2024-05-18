@@ -49,6 +49,8 @@ public final class PersistenceClient {
 
         // TODO: Send SCRAM-SHA-256 "client_first" message, receive the "server_first" message, generate and send the
         // TODO: "client_final" message, receive the "server_final" message, and store the authorization token
+
+        return null;
     }
 
     /**
