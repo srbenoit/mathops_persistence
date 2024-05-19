@@ -23,6 +23,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
+import java.util.logging.Handler;
 
 /**
  * A stand-alone HTTP web server that provides the service API as well as a management interface.
@@ -43,6 +44,9 @@ public final class ServiceSite {
 
     /** The prefix to select the API handler. */
     private static final String API_PREFIX = "/api";
+
+    /** The prefix to select the MGT handler. */
+    private static final String DOC_PREFIX = "/doc";
 
     /** The prefix to select the MGT handler. */
     private static final String MGT_PREFIX = "/mgt";
@@ -163,15 +167,19 @@ public final class ServiceSite {
 
         Log.info("Using configuration directory: ", this.configDir);
 
-        final int mgtPrefixLen = MGT_PREFIX.length();
-        final HttpHandler mgtHandler = new ManagementHandler(mgtPrefixLen, this.configDir, this.sessionMgr);
-
         final int apiPrefixLen = API_PREFIX.length();
         final HttpHandler apiHandler = new ApiHandler(apiPrefixLen, this.configDir, this.sessionMgr);
 
+        final int docPrefixLen = DOC_PREFIX.length();
+        final HttpHandler docHandler = new DocHandler(docPrefixLen);
+
+        final int mgtPrefixLen = MGT_PREFIX.length();
+        final HttpHandler mgtHandler = new ManagementHandler(mgtPrefixLen, this.configDir, this.sessionMgr);
+
         final PathHandler pathHandler = Handlers.path(new ResponseCodeHandler(404));
-        pathHandler.addPrefixPath(MGT_PREFIX, mgtHandler);
         pathHandler.addPrefixPath(API_PREFIX, apiHandler);
+        pathHandler.addPrefixPath(DOC_PREFIX, docHandler);
+        pathHandler.addPrefixPath(MGT_PREFIX, mgtHandler);
 
         final HttpHandler h = new RequestBufferingHandler(pathHandler, 10);
 

@@ -1,11 +1,7 @@
 package dev.mathops.persistence.site;
 
 import dev.mathops.commons.builder.HtmlBuilder;
-import dev.mathops.commons.file.FileLoader;
 import dev.mathops.commons.log.Log;
-import dev.mathops.commons.parser.HexEncoder;
-import dev.mathops.commons.parser.ParsingException;
-import dev.mathops.commons.parser.json.JSONParser;
 import dev.mathops.persistence.site.session.Login;
 import dev.mathops.persistence.site.session.LoginResult;
 import dev.mathops.persistence.site.session.Session;
@@ -21,8 +17,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.List;
