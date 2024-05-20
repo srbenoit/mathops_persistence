@@ -1,10 +1,22 @@
 package dev.mathops.persistence.site;
 
+import dev.mathops.commons.CoreConstants;
 import dev.mathops.commons.builder.HtmlBuilder;
+import dev.mathops.commons.log.Log;
+import dev.mathops.persistence.EFieldType;
+import dev.mathops.persistence.Field;
+import dev.mathops.persistence.Table;
+import dev.mathops.schema.AllTables;
 import io.undertow.server.HttpHandler;
 import io.undertow.server.HttpServerExchange;
 import io.undertow.util.Headers;
 import io.undertow.util.HttpString;
+
+import java.util.ArrayList;
+import java.util.Deque;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 
 /**
  * A handler for Documentation requests.
@@ -22,18 +34,6 @@ public final class DocHandler implements HttpHandler {
 
     /** A header selector. */
     private static final String SCHEMA_OVERVIEW = "SchOverview";
-
-    /** A header selector. */
-    private static final String SCHEMA_MAIN = "SchMain";
-
-    /** A header selector. */
-    private static final String SCHEMA_EXTERN = "SchExtern";
-
-    /** A header selector. */
-    private static final String SCHEMA_ANALYT = "SchAnalyt";
-
-    /** A header selector. */
-    private static final String SCHEMA_TERM = "SchTerm";
 
     /** A header selector. */
     private static final String GEN_OVERVIEW = "GenOverview";
@@ -65,6 +65,9 @@ public final class DocHandler implements HttpHandler {
     /** The number of characters of URI path used to select this handler. */
     private final int prefixLength;
 
+    /** A map from tablespace to a map from schema to a list of tables in that schema. */
+    private final Map<String, Map<String, List<Table>>> tables;
+
     /**
      * Constructs a new {@code DocHandler}.
      *
@@ -73,6 +76,19 @@ public final class DocHandler implements HttpHandler {
     DocHandler(final int thePrefixLength) {
 
         this.prefixLength = thePrefixLength;
+
+        final List<Table> allTables = AllTables.INSTANCE.tables;
+
+        this.tables = new TreeMap<>();
+        for (final Table table : allTables) {
+            final String schema = table.getSchema();
+            final int dotIndex = schema.indexOf('.');
+            final String tablespace = dotIndex == -1 ? CoreConstants.EMPTY : schema.substring(0, dotIndex);
+            final String name = dotIndex == -1 ? schema : schema.substring(dotIndex + 1);
+            final Map<String, List<Table>> inner1 = this.tables.computeIfAbsent(tablespace, s -> new TreeMap<>());
+            final List<Table> inner2 = inner1.computeIfAbsent(name, s -> new ArrayList<>(10));
+            inner2.add(table);
+        }
     }
 
     /**
@@ -116,17 +132,23 @@ public final class DocHandler implements HttpHandler {
                     doGeneral6(htm);
                 } else if ("/general7.html".equals(path)) {
                     doGeneral7(htm);
-
                 } else if ("/schemata.html".equals(path)) {
                     doSchemata(htm);
-                } else if ("/main_system_term.html".equals(path)) {
-                    doMainSystemTerm(htm);
-                } else if ("/tablespace2.html".equals(path)) {
-                    doTablespace2(htm);
-                } else if ("/tablespace3.html".equals(path)) {
-                    doTablespace3(htm);
-                } else if ("/tablespace4.html".equals(path)) {
-                    doTablespace4(htm);
+                } else if ("/tablespace.html".equals(path)) {
+                    final Map<String, Deque<String>> params = httpServerExchange.getQueryParameters();
+                    final Deque<String> tablespaceList = params.get("tablespace");
+                    if (tablespaceList == null || tablespaceList.isEmpty()) {
+                        doSchemata(htm);
+                    } else {
+                        final String tablespace = tablespaceList.getFirst();
+                        final Deque<String> tableList = params.get("table");
+                        if (tableList == null || tableList.isEmpty()) {
+                            doTablespace(htm, tablespace, null);
+                        } else {
+                            final String table = tableList.getFirst();
+                            doTablespace(htm, tablespace, table);
+                        }
+                    }
                 } else {
                     found = false;
                 }
@@ -1222,51 +1244,78 @@ public final class DocHandler implements HttpHandler {
     }
 
     /**
-     * The page showing the 'Term" table in the 'system' schema of the 'main' tablespace.
+     * The page showing a single tablespace.
      *
      * @param htm the {@code HtmlBuilder} to which to append
+     * @param tablespace the tablespace name
+     * @param table the table name (null to show the first table in the space)
      */
-    private void doMainSystemTerm(final HtmlBuilder htm) {
+    private void doTablespace(final HtmlBuilder htm, final String tablespace, final String table) {
 
-        doSchemaNav(htm, SCHEMA_MAIN);
+        doSchemaNav(htm, tablespace);
 
-        htm.sH(4).add("Tablespace: <code>main</code>").eH(4);
+        htm.sH(4).add("Tablespace: <code>", tablespace, "</code>").eH(4);
 
-        htm.addln("<nav>");
-        htm.addln("Schema: <span class='red'>system</span>").br();
-        htm.addln("<a href='/doc/main_system_term.html'><code>Term</code></a>").br();
-        htm.addln("<a href=''><code>School</code></a>").br();
-        htm.addln("<a href=''><code>HoldType</code></a>").br();
-        htm.addln("<a href=''><code>LocalLogin</code></a>").br();
-        htm.addln("<a href=''><code>Parameters</code></a>").br();
-        htm.addln("<a href=''><code>UserPermission</code></a>").br();
-        htm.addln("<a href=''><code>ZipCode</code></a>").br();
-        htm.addln("</nav>");
+        final Map<String, List<Table>> map = this.tables.get(tablespace);
 
-        htm.addln("<article>");
-        htm.sH(5).add("Schema: ").sSpan("red").add("system").eSpan().div("hgap").add("Table: <code>Term</code>").eH(5);
-        htm.addln("</article>");
-    }
+        if (map != null) {
+            htm.addln("<nav>");
 
-    private void doTablespace2(final HtmlBuilder htm) {
+            Table found = null;
+            for (final Map.Entry<String, List<Table>> entry : map.entrySet()) {
+                final String schema = entry.getKey();
+                htm.addln("Schema: <span class='red'>", schema, "</span>").br();
 
-        doSchemaNav(htm, SCHEMA_EXTERN);
+                final List<Table> tablesInSchema = entry.getValue();
+                for (final Table tableInSchema : tablesInSchema) {
+                    final String tableName = tableInSchema.getName();
+                    if (table == null) {
+                        if (found == null) {
+                            found = tableInSchema;
+                        }
+                    } else if (table.equals(tableName)) {
+                        found = tableInSchema;
+                    }
+                    htm.addln("<a href='/doc/tablespace.html?tablespace=", tablespace, "&table=", tableName, "'><code>",
+                            tableName, "</code></a>").br();
+                }
+            }
+            htm.addln("</nav>");
 
-        htm.sH(4).add("Tablespace: <code>extern</code>").eH(4);
-    }
+            if (found != null) {
+                final String tableName = found.getName();
 
-    private void doTablespace3(final HtmlBuilder htm) {
+                htm.addln("<article>");
+                htm.sH(5).add("Schema: ").sSpan("red").add("system").eSpan().div("hgap").add("Table: <code>", tableName,
+                        "</code>").eH(5);
 
-        doSchemaNav(htm, SCHEMA_ANALYT);
+                final String desc = found.getDescription();
+                if (desc != null) {
+                    htm.sP("redhead").add("Description:").eP();
+                    htm.sP().add(desc).eP();
+                }
 
-        htm.sH(4).add("Tablespace: <code>analyt</code>").eH(4);
-    }
+                final String examples = found.getExamples();
+                if (examples != null) {
+                    htm.sP("redhead").add("Examples:").eP();
+                    htm.sP().add(examples).eP();
+                }
 
-    private void doTablespace4(final HtmlBuilder htm) {
+                htm.sTable();
+                htm.sTr().sTh().add("Field").eTh().sTh().add("Type").eTh().eTr();
+                final int numFields = found.getNumFields();
+                for (int i = 0; i < numFields; ++i) {
+                    final Field f = found.getField(i);
+                    final String name = f.getName();
+                    final EFieldType type = f.getType();
+                    htm.sTr().sTd().add(name).eTd().sTd().add(type).eTd().eTr();
+                }
+                htm.eTable();
 
-        doSchemaNav(htm, SCHEMA_TERM);
 
-        htm.sH(4).add("Tablespace: <code>term*</code>").eH(4);
+                htm.addln("</article>");
+            }
+        }
     }
 
     /**
@@ -1313,14 +1362,11 @@ public final class DocHandler implements HttpHandler {
         htm.sP();
         htm.add(SCHEMA_OVERVIEW.equals(which) ? A_CLASS_LIT2 : A_CLASS_DIM2);
         htm.add(" href='/doc/schemata.html'>Overview</a>");
-        htm.add(SCHEMA_MAIN.equals(which) ? A_CLASS_LIT2 : A_CLASS_DIM2);
-        htm.add(" href='/doc/main_system_term.html'>Tablespace: <b>main</b></a>");
-        htm.add(SCHEMA_EXTERN.equals(which) ? A_CLASS_LIT2 : A_CLASS_DIM2);
-        htm.add(" href='/doc/tablespace2.html'>Tablespace: <b>extern</b></a>");
-        htm.add(SCHEMA_ANALYT.equals(which) ? A_CLASS_LIT2 : A_CLASS_DIM2);
-        htm.add(" href='/doc/tablespace3.html'>Tablespace: <b>analyt</b></a>");
-        htm.add(SCHEMA_TERM.equals(which) ? A_CLASS_LIT2 : A_CLASS_DIM2);
-        htm.add(" href='/doc/tablespace4.html'>Tablespace: <b>term*</b></a>");
+
+        for (final String tablespace : this.tables.keySet()) {
+            htm.add(tablespace.equals(which) ? A_CLASS_LIT2 : A_CLASS_DIM2);
+            htm.add(" href='/doc/tablespace.html?tablespace=", tablespace, "'>Tablespace: <b>", tablespace, "</b></a>");
+        }
         htm.eP().hr();
     }
 }

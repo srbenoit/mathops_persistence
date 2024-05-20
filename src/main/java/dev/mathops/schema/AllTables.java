@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * A container object that holds all table definitions in the "primary" schema.
+ * A container object that holds all table definitions.
  */
 public final class AllTables {
 
@@ -25,6 +25,7 @@ public final class AllTables {
         this.tables = new ArrayList<>(10);
 
         this.tables.add(TermTable.INSTANCE);
+        this.tables.add(SchoolTable.INSTANCE);
     }
 
     /**
