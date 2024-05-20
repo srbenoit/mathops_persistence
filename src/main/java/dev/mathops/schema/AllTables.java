@@ -25,9 +25,13 @@ public final class AllTables {
         this.tables = new ArrayList<>(10);
 
         this.tables.add(TermTable.INSTANCE);
-        this.tables.add(SchoolTable.INSTANCE);
-        this.tables.add(HoldTypeTable.INSTANCE);
+        this.tables.add(RoleTable.INSTANCE);
+        this.tables.add(RolePermissionTable.INSTANCE);
         this.tables.add(LocalLoginTable.INSTANCE);
+        this.tables.add(ParameterTable.INSTANCE);
+        this.tables.add(HoldTypeTable.INSTANCE);
+        this.tables.add(SchoolTable.INSTANCE);
+        this.tables.add(ZipCodeTable.INSTANCE);
     }
 
     /**

@@ -1288,9 +1288,9 @@ public final class DocHandler implements HttpHandler {
                         hit = true;
                     }
                     if (hit) {
-                        htm.addln("&bullet; ");
+                        htm.add("&bullet;&nbsp;");
                     } else {
-                        htm.addln("<span style='color:rgba(0,0,0,0%)'>&bullet;</span> ");
+                        htm.add("<span style='color:rgba(0,0,0,0%)'>&bullet;</span>&nbsp;");
                     }
 
                     htm.add("<a href='/doc/tablespace.html?tablespace=", tablespace, "&table=", tableName, "'><code>",
