@@ -10,18 +10,26 @@ public abstract class AbstractFieldConstraint<T> implements Comparable<AbstractF
     /** The constraint name (must be unique within a field). */
     private final String name;
 
+    /** The constraint name (must be unique within a field). */
+    private final String description;
+
     /**
      * Constructs a new {@code AbstractFieldConstraint}.
      *
      * @param theName the constraint name (must be unique within a field)
+     * @param theDescription the constraint description
      */
-    protected AbstractFieldConstraint(final String theName) {
+    protected AbstractFieldConstraint(final String theName, final String theDescription) {
 
         if (theName == null) {
             throw new IllegalArgumentException("Constraint name may not be null");
         }
+        if (theDescription == null) {
+            throw new IllegalArgumentException("Constraint description may not be null");
+        }
 
         this.name = theName;
+        this.description = theDescription;
     }
 
     /**
@@ -32,6 +40,16 @@ public abstract class AbstractFieldConstraint<T> implements Comparable<AbstractF
     public final String getName() {
 
         return this.name;
+    }
+
+    /**
+     * Gets the constraint description.
+     *
+     * @return the constraint description
+     */
+    public final String getDescription() {
+
+        return this.description;
     }
 
     /**

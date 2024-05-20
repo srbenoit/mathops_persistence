@@ -22,7 +22,7 @@ public final class LongRangeConstraint extends AbstractFieldConstraint<Long> {
      */
     public LongRangeConstraint(final String theName, final long theMinValue, final long theMaxValue) {
 
-        super(theName);
+        super(theName, "Long values from " + theMinValue + " to " + theMaxValue);
 
         if (theMaxValue < theMinValue) {
             throw new IllegalArgumentException("Maximum value may not be less than minimum value");

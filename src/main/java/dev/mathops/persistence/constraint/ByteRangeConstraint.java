@@ -22,7 +22,7 @@ public final class ByteRangeConstraint extends AbstractFieldConstraint<Byte> {
      */
     public ByteRangeConstraint(final String theName, final byte theMinValue, final byte theMaxValue) {
 
-        super(theName);
+        super(theName, "Byte values from " + theMinValue + " to " + theMaxValue);
 
         if (theMaxValue < theMinValue) {
             throw new IllegalArgumentException("Maximum value may not be less than minimum value");

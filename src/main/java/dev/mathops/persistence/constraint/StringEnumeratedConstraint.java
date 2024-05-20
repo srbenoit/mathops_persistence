@@ -21,7 +21,7 @@ public final class StringEnumeratedConstraint extends AbstractFieldConstraint<St
      */
     public StringEnumeratedConstraint(final String theName, final String... theAllowedValues) {
 
-        super(theName);
+        super(theName, "Strings from a set of allowed values.");
 
         if (theAllowedValues == null || theAllowedValues.length == 0) {
             throw new IllegalArgumentException("Allowed values array may not be null or empty");

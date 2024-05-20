@@ -6,6 +6,7 @@ import dev.mathops.commons.log.Log;
 import dev.mathops.persistence.EFieldType;
 import dev.mathops.persistence.Field;
 import dev.mathops.persistence.Table;
+import dev.mathops.persistence.constraint.AbstractFieldConstraint;
 import dev.mathops.schema.AllTables;
 import io.undertow.server.HttpHandler;
 import io.undertow.server.HttpServerExchange;
@@ -201,15 +202,18 @@ public final class DocHandler implements HttpHandler {
                 "font-size:14pt; margin-right:10px;}");
         htm.addln("  a.lit2 { color:white; background-color:#D9782D; padding:4pt 12pt; border-radius: 8pt;",
                 "border:1px solid black; box-shadow:rgba(0,0,0,0.25) 2px 4px 6px; font-size:14pt; margin-right:10px;}");
+        htm.addln("  .flexbox { display:flex; align-content:flex-start;}");
         htm.addln("  nav {float:left; border-right:1px solid gray; border-left:1px solid gray; ",
                 "background-color:#eee; padding:10px; margin-top:10px; }");
-        htm.addln("  article {float:left; padding:0 20px 0 20px; margin-top:10px; width:auto; }");
-
+        htm.addln("  article {float:left; padding:0 20px 0 20px; margin-top:10px; width:auto; order:1; flex-grow:1; }");
         htm.addln("  code { color:#0070C0; font-weight:700;}");
+        htm.addln("  th { text-align:left; background-color:#eee; }");
         htm.addln("  td { vertical-align:top; padding:5px;}");
         htm.addln("  .indent { margin-left:20px; }");
         htm.addln("  .redhead { color:red; font-style:italic; margin-top:4px; margin-bottom:2px; }");
+        htm.addln("  p.innerhead { color:#006144; font-weight:700; margin-top:12px; margin-bottom:2px; }");
         htm.addln("  .red { color:#B00; font-weight:700;}");
+        htm.addln("  .constraint { color:#D9782D; }");
         htm.addln("  .thin { margin-top:3px; margin-bottom:3px; }");
         htm.addln("  .vgap { min-height:15px; }");
         htm.addln("  .hgap { display:inline-block; min-width:30px; }");
@@ -676,7 +680,8 @@ public final class DocHandler implements HttpHandler {
         htm.addln("  <ul>");
         htm.addln("  <li>An enumerated value (Tinyint) indicating the field type</li>");
         htm.addln("  <li>An enumerated value (Tinyint) indicating the field's role</li>");
-        htm.addln("  <li>The number (<code>M</code>) of constraints associated with the field, as an integer (Tinyint, Byte, or Short)</li>");
+        htm.addln("  <li>The number (<code>M</code>) of constraints associated with the field, as an integer " +
+                "(Tinyint, Byte, or Short)</li>");
         htm.addln("  <li><code>M</code> repetitions of constraint definitions:</li>");
         htm.addln("    <ul>");
         htm.addln("    <li>If type is STRING_ENUMERATED, the number (<code>P</code>) of enumerated values as an ",
@@ -689,7 +694,8 @@ public final class DocHandler implements HttpHandler {
         htm.addln("    <li>If type is INTEGER_RANGE, the minimum value as an integer (Tinyint, Byte, Short, or ",
                 "Integer) followed by the maximum value as an integer (Tinyint, Byte, Short, or Integer).</li>");
         htm.addln("    <li>If type is LONG_RANGE, the minimum value as a long integer (Tinyint, Byte, Short, or ",
-                "Integer, or Long) followed by the maximum value as an integer (Tinyint, Byte, Short, Integer, or Long).</li>");
+                "Integer, or Long) followed by the maximum value as an integer (Tinyint, Byte, Short, Integer, or " +
+                        "Long).</li>");
         htm.addln("    <li>If type is FLOAT_RANGE, the minimum value as a Float followed by the maximum value as a ",
                 "Float.</li>");
         htm.addln("    <li>If type is DOUBLE_RANGE, the minimum value as a Double followed by the maximum value as a ",
@@ -818,7 +824,6 @@ public final class DocHandler implements HttpHandler {
         htm.addln("  </ul>");
         htm.addln("</ul>");
 
-
         htm.sP().add("<strong>Row Encoding</strong> (NOTE: schema and table name are already defined when this object",
                 " is encoded, fields with null values are excluded)").eP();
         htm.addln("<ul>");
@@ -841,7 +846,6 @@ public final class DocHandler implements HttpHandler {
         htm.addln("  <li>If type is LOCAL_DATE_TIME, a LocalDateTime</li>");
         htm.addln("  </ul>");
         htm.addln("</ul>");
-
 
         htm.sP().add("<strong>Updated Values Encoding</strong> (NOTE: schema and table name are already defined when ",
                 "this object is encoded)").eP();
@@ -940,7 +944,8 @@ public final class DocHandler implements HttpHandler {
 
         htm.sP("thin").add("<code>GET all_tables</code>").eP();
         htm.sDiv("indent");
-        htm.sP("thin").add("Retrieves the set of defined tables and their fields and constraints.  If a schema ID is provided, only the tables in that schema are returned.").eP();
+        htm.sP("thin").add("Retrieves the set of defined tables and their fields and constraints.  If a schema ID is " +
+                "provided, only the tables in that schema are returned.").eP();
         htm.sP("redhead").add("Request body:").eP();
         htm.addln("<ul class='thin'>");
         htm.addln("<li>16-byte authorization token</li>");
@@ -1058,7 +1063,8 @@ public final class DocHandler implements HttpHandler {
 
         htm.sP("thin").add("<code>POST insert</code>").eP();
         htm.sDiv("indent");
-        htm.sP("thin").add("Inserts one or more rows into a specified table.  All rows will be inserted if successful; none will be inserted on failure.").eP();
+        htm.sP("thin").add("Inserts one or more rows into a specified table.  All rows will be inserted if " +
+                "successful; none will be inserted on failure.").eP();
         htm.sP("redhead").add("Request body:").eP();
         htm.addln("<ul class='thin'>");
         htm.addln("<li>16-byte authorization token</li>");
@@ -1086,7 +1092,8 @@ public final class DocHandler implements HttpHandler {
 
         htm.sP("thin").add("<code>POST insert_multi</code>").eP();
         htm.sDiv("indent");
-        htm.sP("thin").add("Inserts one or more rows into each of a set of specified tables.  All rows will be inserted if successful; none will be inserted on failure.").eP();
+        htm.sP("thin").add("Inserts one or more rows into each of a set of specified tables.  All rows will be " +
+                "inserted if successful; none will be inserted on failure.").eP();
         htm.sP("redhead").add("Request body:").eP();
         htm.addln("<ul class='thin'>");
         htm.addln("<li>16-byte authorization token</li>");
@@ -1230,7 +1237,7 @@ public final class DocHandler implements HttpHandler {
         htm.addln("<ul>");
         htm.addln("<li><code>main</code> (data that does not vary by term, such as student data)</li>");
         htm.addln("<li><code>extern</code> (data that comes from \"external\" systems like a University registrar's "
-                ,"database)</li>");
+                , "database)</li>");
         htm.addln("<li><code>analyt</code> (analytics data that is updated when analytics need to be run)</li>");
         htm.addln("<li><code>termYYYYMM</code> (one tablespace for each term, where <code>YYYY</code> is a 4-digit ",
                 "year and <code>MM</code> is a unique 2-digit code for the term within the year, where ",
@@ -1246,37 +1253,47 @@ public final class DocHandler implements HttpHandler {
     /**
      * The page showing a single tablespace.
      *
-     * @param htm the {@code HtmlBuilder} to which to append
+     * @param htm        the {@code HtmlBuilder} to which to append
      * @param tablespace the tablespace name
-     * @param table the table name (null to show the first table in the space)
+     * @param table      the table name (null to show the first table in the space)
      */
     private void doTablespace(final HtmlBuilder htm, final String tablespace, final String table) {
 
         doSchemaNav(htm, tablespace);
 
-        htm.sH(4).add("Tablespace: <code>", tablespace, "</code>").eH(4);
+        htm.sH(4).add("Tablespace:&nbsp;<code>", tablespace, "</code>").eH(4);
 
         final Map<String, List<Table>> map = this.tables.get(tablespace);
 
         if (map != null) {
+            htm.sDiv("flexbox");
             htm.addln("<nav>");
 
             Table found = null;
             for (final Map.Entry<String, List<Table>> entry : map.entrySet()) {
                 final String schema = entry.getKey();
-                htm.addln("Schema: <span class='red'>", schema, "</span>").br();
+                htm.addln("Schema:&nbsp;<span class='red'>", schema, "</span>").br();
 
                 final List<Table> tablesInSchema = entry.getValue();
                 for (final Table tableInSchema : tablesInSchema) {
                     final String tableName = tableInSchema.getName();
+                    boolean hit = false;
                     if (table == null) {
                         if (found == null) {
                             found = tableInSchema;
+                            hit = true;
                         }
                     } else if (table.equals(tableName)) {
                         found = tableInSchema;
+                        hit = true;
                     }
-                    htm.addln("<a href='/doc/tablespace.html?tablespace=", tablespace, "&table=", tableName, "'><code>",
+                    if (hit) {
+                        htm.addln("&bullet; ");
+                    } else {
+                        htm.addln("<span style='color:rgba(0,0,0,0%)'>&bullet;</span> ");
+                    }
+
+                    htm.add("<a href='/doc/tablespace.html?tablespace=", tablespace, "&table=", tableName, "'><code>",
                             tableName, "</code></a>").br();
                 }
             }
@@ -1291,29 +1308,47 @@ public final class DocHandler implements HttpHandler {
 
                 final String desc = found.getDescription();
                 if (desc != null) {
-                    htm.sP("redhead").add("Description:").eP();
-                    htm.sP().add(desc).eP();
+                    htm.sP("innerhead").add("Description:").eP();
+                    htm.sDiv("indent");
+                    htm.add(desc);
+                    htm.eDiv();
                 }
 
                 final String examples = found.getExamples();
                 if (examples != null) {
-                    htm.sP("redhead").add("Examples:").eP();
-                    htm.sP().add(examples).eP();
+                    htm.sP("innerhead").add("Examples:").eP();
+                    htm.sDiv("indent");
+                    htm.add(examples);
+                    htm.eDiv();
                 }
 
                 htm.sTable();
-                htm.sTr().sTh().add("Field").eTh().sTh().add("Type").eTh().eTr();
+                htm.sTr().sTh().add("Field").eTh().sTh().add("Type").eTh().sTh().add("Description").eTh().eTr();
                 final int numFields = found.getNumFields();
                 for (int i = 0; i < numFields; ++i) {
-                    final Field f = found.getField(i);
-                    final String name = f.getName();
-                    final EFieldType type = f.getType();
-                    htm.sTr().sTd().add(name).eTd().sTd().add(type).eTd().eTr();
+                    final Field field = found.getField(i);
+
+                    final String name = field.getName();
+                    final EFieldType type = field.getType();
+                    final String typeName = type.name();
+                    final String descr = field.getDescription();
+                    htm.sTr().sTd().add("<code>", name, "</code>").eTd()
+                            .sTd().add(typeName).eTd()
+                            .sTd().add(descr);
+
+                    final int numConstraints = field.getNumConstraints();
+                    for (int j = 0; j < numConstraints; ++j) {
+                        final AbstractFieldConstraint<?> constraint = field.getConstraint(j);
+                        final String constraintDesc = constraint.getDescription();
+                        htm.br().sSpan("constraint").add("Constraint: ", constraintDesc).eSpan();
+                    }
+
+                    htm.eTd().eTr();
                 }
                 htm.eTable();
 
-
                 htm.addln("</article>");
+                htm.eDiv();
             }
         }
     }
@@ -1321,7 +1356,7 @@ public final class DocHandler implements HttpHandler {
     /**
      * Generates the navigation buttons in the "Generalized Database" sub-menu.
      *
-     * @param htm the {@code HtmlBuilder} to which to append
+     * @param htm   the {@code HtmlBuilder} to which to append
      * @param which the header selector
      */
     private void doGeneralNav(final HtmlBuilder htm, final String which) {
@@ -1351,7 +1386,7 @@ public final class DocHandler implements HttpHandler {
     /**
      * Generates the navigation buttons in the "Schemata" sub-menu.
      *
-     * @param htm the {@code HtmlBuilder} to which to append
+     * @param htm   the {@code HtmlBuilder} to which to append
      * @param which the header selector
      */
     private void doSchemaNav(final HtmlBuilder htm, final String which) {

@@ -27,7 +27,7 @@ public final class DoubleRangeConstraint extends AbstractFieldConstraint<Double>
     public DoubleRangeConstraint(final String theName, final EFloatingPointAllow theAllowed, final double theMinValue,
                                  final double theMaxValue) {
 
-        super(theName);
+        super(theName, "Double values from " + theMinValue + " to " + theMaxValue);
 
         if (theAllowed == null) {
             throw new IllegalArgumentException("Allowed values specification may not be null");

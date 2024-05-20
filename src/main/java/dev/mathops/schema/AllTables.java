@@ -26,6 +26,8 @@ public final class AllTables {
 
         this.tables.add(TermTable.INSTANCE);
         this.tables.add(SchoolTable.INSTANCE);
+        this.tables.add(HoldTypeTable.INSTANCE);
+        this.tables.add(LocalLoginTable.INSTANCE);
     }
 
     /**

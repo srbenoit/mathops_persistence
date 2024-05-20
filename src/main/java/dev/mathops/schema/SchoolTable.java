@@ -44,36 +44,35 @@ public final class SchoolTable extends Table {
      */
     private static final Field F_ZIP_CODE;
 
-
     /** The single instance. */
     public static final SchoolTable INSTANCE;
 
     static {
         F_CEEB_CODE = new Field("ceeb_code", EFieldType.INTEGER, EFieldRole.PARTITION_KEY,
-                "The CEEB code of the high school",
+                "The CEEB code of the high school.",
                 new IntegerRangeConstraint("ceeb_code_range", 0, 999999));
         F_NAME = new Field("name", EFieldType.STRING, EFieldRole.NOT_NULL,
                 "The school name.");
         F_MAILING_ADDR = new Field("mailing_addr", EFieldType.STRING, EFieldRole.NOT_NULL,
-                "The school's mailing address, suitable for use on an envelope addressed to the school",
+                "The school's mailing address, suitable for use on an envelope addressed to the school.",
                 new StringLengthConstraint("mailing_addr_length", 1, 32));
         F_CITY = new Field("city", EFieldType.STRING, EFieldRole.NOT_NULL,
-                "The city of the school's mailing address, suitable for use on an envelope addressed to the school",
+                "The city of the school's mailing address, suitable for use on an envelope addressed to the school.",
                 new StringLengthConstraint("city_length", 1, 32));
         F_STATE = new Field("state", EFieldType.STRING, EFieldRole.NOT_NULL,
                 "The state (two-letter code) of the school's mailing address, suitable for use on an envelope "
-                        + "addressed to the school",
+                        + "addressed to the school.",
                 new StringLengthConstraint("state_length", 2, 2));
         F_ZIP_CODE = new Field("zip_code", EFieldType.STRING, EFieldRole.NOT_NULL,
                 "The zip code (5-digit or 5+4) of the school's mailing address, suitable for use on an envelope "
-                        + "addressed to the school",
+                        + "addressed to the school.",
                 new StringLengthConstraint("zip_code_length", 5, 10));
 
         INSTANCE = new SchoolTable();
     }
 
     /**
-     * Constructs a new {@code TermTable}.
+     * Constructs a new {@code SchoolTable}.
      */
     private SchoolTable() {
 

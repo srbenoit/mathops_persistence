@@ -22,7 +22,7 @@ public final class IntegerRangeConstraint extends AbstractFieldConstraint<Intege
      */
     public IntegerRangeConstraint(final String theName, final int theMinValue, final int theMaxValue) {
 
-        super(theName);
+        super(theName, "Integer values from " + theMinValue + " to " + theMaxValue);
 
         if (theMaxValue < theMinValue) {
             throw new IllegalArgumentException("Maximum value may not be less than minimum value");

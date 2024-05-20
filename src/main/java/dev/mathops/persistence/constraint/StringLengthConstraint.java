@@ -22,7 +22,9 @@ public final class StringLengthConstraint extends AbstractFieldConstraint<String
      */
     public StringLengthConstraint(final String theName, final int theMinLength, final int theMaxLength) {
 
-        super(theName);
+        super(theName, theMaxLength == theMinLength ? ("Strings of length " + theMinLength)
+                : theMaxLength == Integer.MAX_VALUE ? ("Strings of length " + theMinLength + " or more")
+                : ("Strings of length " + theMinLength + " to " + theMaxLength));
 
         if (theMinLength < 0) {
             throw new IllegalArgumentException("Minimum length may not be negative");

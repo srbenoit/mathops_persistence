@@ -25,7 +25,7 @@ public final class TermTable extends Table {
             + "be created.  When a row is deleted, the corresponding tablespace (and its tables) should be archived "
             + "to files then deleted.  Applications can query for the active term, then use that to select the "
             + "appropriate term tablespace for queries of term-specific data.</p>"
-            + "<p>At the boundary between terms (midnight at the end of a term’s last day), the <code>active "
+            + "<p>At the boundary between terms (midnight at the end of a term's last day), the <code>active "
             + "index</code> of all term rows should be incremented.</p>";
 
     /** Examples (HTML). */
@@ -73,17 +73,17 @@ public final class TermTable extends Table {
 
     static {
         F_TERM = new Field("term", EFieldType.INTEGER, EFieldRole.PARTITION_KEY,
-                "The term ID - in the form YYYYNN, where NN is 30 for Spring, 60 for Summer, 90 for Fall",
+                "The term ID - in the form YYYYNN, where NN is 30 for Spring, 60 for Summer, 90 for Fall.",
                 new IntegerRangeConstraint("term_id_range", 100000, 999999));
         F_START_DATE = new Field("start_date", EFieldType.LOCAL_DATE, EFieldRole.NOT_NULL,
                 "The first day of the term (not the first day of classes).");
         F_END_DATE = new Field("end_date", EFieldType.LOCAL_DATE, EFieldRole.NOT_NULL,
                 "The last day of the term (not the last day of classes).");
         F_ACADEMIC_YEAR = new Field("academic_year", EFieldType.INTEGER, EFieldRole.NOT_NULL,
-                "The academic year, such as '2324' to indicate the 2023-2024 academic year",
+                "The academic year, such as '2324' to indicate the 2023-2024 academic year.",
                 new IntegerRangeConstraint("academic_year_range", 1000, 9999));
         F_ACTIVE_INDEX = new Field("active_index", EFieldType.LOCAL_DATE, EFieldRole.NOT_NULL,
-                "The active index (0 for the currently active term, +1 for the next term, -1 for the prior term, etc.)");
+                "The active index (0 for the current active term, +1 for the next term, -1 for the prior term, etc.).");
         F_DROP_DEADLINE = new Field("drop_deadline", EFieldType.LOCAL_DATE, EFieldRole.NOT_NULL,
                 "The deadline date to drop courses this term.");
         F_WITHDRAW_DEADLINE = new Field("withdraw_deadline", EFieldType.LOCAL_DATE,
