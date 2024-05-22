@@ -2,6 +2,15 @@ package dev.mathops.schema;
 
 import dev.mathops.commons.builder.SimpleBuilder;
 import dev.mathops.persistence.Table;
+import dev.mathops.schema.main.HoldTypeTable;
+import dev.mathops.schema.main.LocalLoginTable;
+import dev.mathops.schema.main.ParameterTable;
+import dev.mathops.schema.main.RolePermissionTable;
+import dev.mathops.schema.main.RoleTable;
+import dev.mathops.schema.main.SchoolTable;
+import dev.mathops.schema.main.TermTable;
+import dev.mathops.schema.main.ZipCodeTable;
+import dev.mathops.schema.term.TermWeekTable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,6 +33,7 @@ public final class AllTables {
 
         this.tables = new ArrayList<>(10);
 
+        // main.system schema
         this.tables.add(TermTable.INSTANCE);
         this.tables.add(RoleTable.INSTANCE);
         this.tables.add(RolePermissionTable.INSTANCE);
@@ -32,6 +42,9 @@ public final class AllTables {
         this.tables.add(HoldTypeTable.INSTANCE);
         this.tables.add(SchoolTable.INSTANCE);
         this.tables.add(ZipCodeTable.INSTANCE);
+
+        // term.system schema
+        this.tables.add(TermWeekTable.INSTANCE);
     }
 
     /**

@@ -1,4 +1,4 @@
-package dev.mathops.schema;
+package dev.mathops.schema.main;
 
 import dev.mathops.persistence.EFieldRole;
 import dev.mathops.persistence.EFieldType;

@@ -1,14 +1,10 @@
-package dev.mathops.schema;
+package dev.mathops.schema.main;
 
 import dev.mathops.persistence.EFieldRole;
 import dev.mathops.persistence.EFieldType;
 import dev.mathops.persistence.Field;
-import dev.mathops.persistence.SelectionCriteria;
 import dev.mathops.persistence.Table;
-import dev.mathops.persistence.constraint.StringEnumeratedConstraint;
 import dev.mathops.persistence.constraint.StringLengthConstraint;
-import dev.mathops.persistence.criteria.ENumericMatchType;
-import dev.mathops.persistence.criteria.IntegerFieldCriterion;
 
 /**
  * The "LocalLogin" table specification within the "system" schema of the "main" tablespace.
