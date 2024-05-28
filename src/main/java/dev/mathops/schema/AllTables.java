@@ -10,6 +10,8 @@ import dev.mathops.schema.main.RoleTable;
 import dev.mathops.schema.main.SchoolTable;
 import dev.mathops.schema.main.TermTable;
 import dev.mathops.schema.main.ZipCodeTable;
+import dev.mathops.schema.mathops.FieldTable;
+import dev.mathops.schema.mathops.TableTable;
 import dev.mathops.schema.term.TermWeekTable;
 
 import java.util.ArrayList;
@@ -32,6 +34,10 @@ public final class AllTables {
     private AllTables() {
 
         this.tables = new ArrayList<>(10);
+
+        // mathops.persistence schema
+        this.tables.add(TableTable.INSTANCE);
+        this.tables.add(FieldTable.INSTANCE);
 
         // main.system schema
         this.tables.add(TermTable.INSTANCE);

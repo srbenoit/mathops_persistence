@@ -47,13 +47,16 @@ import java.util.Arrays;
 public class Table implements Comparable<Table> {
 
     /** Valid characters to start a table name. */
-    private static final String VALID_NAME_START = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+    private static final String VALID_NAME_START = "abcdefghijklmnopqrstuvwxyz";
 
     /** Valid characters in table names. */
-    private static final String VALID_NAME_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz_0123456789";
+    private static final String VALID_NAME_CHARS = "abcdefghijklmnopqrstuvwxyz_0123456789";
 
-    /** The schema name (often a tablespace name, a dot, and a schema name). */
+    /** The schema name. */
     private final String schema;
+
+    /** The table group name. */
+    private final String group;
 
     /** The table name. */
     private final String name;
@@ -70,17 +73,23 @@ public class Table implements Comparable<Table> {
     /**
      * Constructs a new {@code Table}.
      *
-     * @param theSchema      the schema name (often a tablespace name, a dot, and a schema name)
+     * @param theSchema      the schema name
+     * @param theGroup       the table group name
      * @param theName        the table name
      * @param theDescription the table description (shown in auto-generated documentation)
      * @param theExamples    optional HTML description with some examples or use-cases of rows in the table
      * @param theFields      the ordered list of fields
+     * @throws IllegalArgumentException if the schema, group, or table name is {@code null} or blank or is not a valid
+     * identifier, if there are no fields provides, or if an entry in the fields array is {@code null}
      */
-    public Table(final String theSchema, final String theName, final String theDescription, final String theExamples,
-                 final Field... theFields) {
+    public Table(final String theSchema, final String theGroup, final String theName, final String theDescription,
+                 final String theExamples, final Field... theFields) throws IllegalArgumentException {
 
         if (theSchema == null || theSchema.isBlank()) {
             throw new IllegalArgumentException("Schema name may not be null or blank");
+        }
+        if (theGroup == null || theGroup.isBlank()) {
+            throw new IllegalArgumentException("Table group name may not be null or blank");
         }
         if (theName == null || theName.isBlank()) {
             throw new IllegalArgumentException("Table name may not be null or blank");
@@ -89,16 +98,14 @@ public class Table implements Comparable<Table> {
             throw new IllegalArgumentException("Table description may not be null or blank");
         }
 
-        final int len = theName.length();
-        final char ch1 = theName.charAt(0);
-        if (VALID_NAME_START.indexOf((int) ch1) == -1) {
-            throw new IllegalArgumentException("Invalid character at start of table name.");
+        if (isInvalidName(theSchema)) {
+            throw new IllegalArgumentException("Schema name is not a valid identifier");
         }
-        for (int i = 1; i < len; ++i) {
-            final char ch2 = theName.charAt(i);
-            if (VALID_NAME_CHARS.indexOf((int) ch2) == -1) {
-                throw new IllegalArgumentException("Invalid character within table name.");
-            }
+        if (isInvalidName(theGroup)) {
+            throw new IllegalArgumentException("Table group name is not a valid identifier");
+        }
+        if (isInvalidName(theName)) {
+            throw new IllegalArgumentException("Table name is not a valid identifier");
         }
 
         if (theFields == null || theFields.length == 0) {
@@ -111,6 +118,7 @@ public class Table implements Comparable<Table> {
         }
 
         this.schema = theSchema;
+        this.group = theGroup;
         this.name = theName;
         this.description = theDescription;
         this.examples = theExamples;
@@ -118,13 +126,52 @@ public class Table implements Comparable<Table> {
     }
 
     /**
+     * Tests whether a name conforms to requirements.  Names must begin with a lowercase letter (a-z), and contain only
+     * lowercase letters, decimal digits, or the underscore character.
+     *
+     * @param theName the name to test
+     * @return {@code true} if the name is valid; {@code false} if not
+     */
+    private static boolean isInvalidName(final CharSequence theName) {
+
+        final int len = theName.length();
+        boolean valid = len > 0;
+
+        if (valid) {
+            final char ch1 = theName.charAt(0);
+            if (VALID_NAME_START.indexOf((int) ch1) == -1) {
+                valid = false;
+            }
+
+            for (int i = 1; valid && i < len; ++i) {
+                final char ch2 = theName.charAt(i);
+                if (VALID_NAME_CHARS.indexOf((int) ch2) == -1) {
+                    valid = false;
+                }
+            }
+        }
+
+        return !valid;
+    }
+
+    /**
      * Gets the schema name.
      *
-     * @return the schema name (often a tablespace name, a dot, and a schema name)
+     * @return the schema name
      */
     public final String getSchema() {
 
         return this.schema;
+    }
+
+    /**
+     * Gets the table group name.
+     *
+     * @return the table group name
+     */
+    public final String getGroup() {
+
+        return this.group;
     }
 
     /**
@@ -196,12 +243,12 @@ public class Table implements Comparable<Table> {
     @Override
     public final int hashCode() {
 
-        return this.schema.hashCode() + this.name.hashCode() + Arrays.hashCode(this.fields);
+        return this.schema.hashCode() + this.group.hashCode() + this.name.hashCode() + Arrays.hashCode(this.fields);
     }
 
     /**
      * Tests whether this object is equal to another.  To be equal, the other object must be a {@code Table} with the
-     * same schema, name, and collection of fields.
+     * same schema name, table group name, table name, and collection of fields.
      *
      * @return the hash code
      */
@@ -214,10 +261,12 @@ public class Table implements Comparable<Table> {
             equal = true;
         } else if (obj instanceof final Table objTable) {
             final String objSchema = objTable.getSchema();
+            final String objGroup = objTable.getGroup();
             final String objName = objTable.getName();
             final Field[] objFields = objTable.getFields();
 
-            equal = this.schema.equals(objSchema) && this.name.equals(objName) && Arrays.equals(this.fields, objFields);
+            equal = this.schema.equals(objSchema) && this.group.equals(objGroup)  && this.name.equals(objName)
+                    && Arrays.equals(this.fields, objFields);
         } else {
             equal = false;
         }
@@ -227,7 +276,8 @@ public class Table implements Comparable<Table> {
 
     /**
      * Compares this object with the specified object for order. Returns a negative integer, zero, or a positive integer
-     * as this object is less than, equal to, or greater than the specified object.
+     * as this object is less than, equal to, or greater than the specified object.  Sort order is based on schema
+     * name first, then table group name, then table name.
      *
      * @param o the object to be compared
      * @return a negative integer, zero, or a positive integer as this object is less than, equal to, or greater than
@@ -240,8 +290,13 @@ public class Table implements Comparable<Table> {
         int result = this.schema.compareTo(oSchema);
 
         if (result == 0) {
-            final String oName = o.getName();
-            result = this.name.compareTo(oName);
+            final String oGroup = o.getGroup();
+            result = this.group.compareTo(oGroup);
+
+            if (result == 0) {
+                final String oName = o.getName();
+                result = this.name.compareTo(oName);
+            }
         }
 
         return result;
@@ -257,6 +312,7 @@ public class Table implements Comparable<Table> {
 
         final String fieldsStr = Arrays.toString(this.fields);
 
-        return SimpleBuilder.concat("Table{schema='", this.schema, "',name='", this.name, "',fields=", fieldsStr, "}");
+        return SimpleBuilder.concat("Table{schema='", this.schema, "',group='", this.group, "',name='", this.name,
+                "',fields=", fieldsStr, "}");
     }
 }

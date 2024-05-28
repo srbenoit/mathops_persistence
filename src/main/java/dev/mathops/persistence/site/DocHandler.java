@@ -2,7 +2,6 @@ package dev.mathops.persistence.site;
 
 import dev.mathops.commons.CoreConstants;
 import dev.mathops.commons.builder.HtmlBuilder;
-import dev.mathops.commons.log.Log;
 import dev.mathops.persistence.EFieldType;
 import dev.mathops.persistence.Field;
 import dev.mathops.persistence.Table;
@@ -66,7 +65,7 @@ public final class DocHandler implements HttpHandler {
     /** The number of characters of URI path used to select this handler. */
     private final int prefixLength;
 
-    /** A map from tablespace to a map from schema to a list of tables in that schema. */
+    /** A map from schema to a map from group name to a list of tables in that group. */
     private final Map<String, Map<String, List<Table>>> tables;
 
     /**
@@ -133,21 +132,21 @@ public final class DocHandler implements HttpHandler {
                     doGeneral6(htm);
                 } else if ("/general7.html".equals(path)) {
                     doGeneral7(htm);
-                } else if ("/schemata.html".equals(path)) {
-                    doSchemata(htm);
-                } else if ("/tablespace.html".equals(path)) {
+                } else if ("/schemas.html".equals(path)) {
+                    doSchemas(htm);
+                } else if ("/schema.html".equals(path)) {
                     final Map<String, Deque<String>> params = httpServerExchange.getQueryParameters();
-                    final Deque<String> tablespaceList = params.get("tablespace");
-                    if (tablespaceList == null || tablespaceList.isEmpty()) {
-                        doSchemata(htm);
+                    final Deque<String> schemaList = params.get("schema");
+                    if (schemaList == null || schemaList.isEmpty()) {
+                        doSchemas(htm);
                     } else {
-                        final String tablespace = tablespaceList.getFirst();
+                        final String schema = schemaList.getFirst();
                         final Deque<String> tableList = params.get("table");
                         if (tableList == null || tableList.isEmpty()) {
-                            doTablespace(htm, tablespace, null);
+                            doSchema(htm, schema, null);
                         } else {
                             final String table = tableList.getFirst();
-                            doTablespace(htm, tablespace, table);
+                            doSchema(htm, schema, table);
                         }
                     }
                 } else {
@@ -1199,9 +1198,23 @@ public final class DocHandler implements HttpHandler {
      *
      * @param htm the {@code HtmlBuilder} to which to append
      */
-    private void doSchemata(final HtmlBuilder htm) {
+    private void doSchemas(final HtmlBuilder htm) {
 
         doSchemaNav(htm, SCHEMA_OVERVIEW);
+
+        htm.sP().add("The <strong>MathOps Persistence Layer</strong> is generalized and can manage any collection of ",
+                "tables and schemas, but includes an implementation of all schemas and tables needed by the broader ",
+                "MathOps system.").eP();
+
+        htm.sP().add("At a high level, data is partitioned into schemas and tables (each with a unique name), ",
+                "where each table exists within a schema, and the combination of schema name and table name ",
+                "uniquely select a physical database table.  Since schemas may have a large number of tables, ",
+                "tables within a schema may be organized into groups, each with a unique group name, but all ",
+                "tables in a schema must have unique names regardless of their group membership.").eP();
+
+        htm.sP().add("Some database products are case-sensitive while others are not, so names of schemas, tables, ",
+                "and table groups should use only lowercase letters, digits, and underscore characters. Every name ",
+                "must start with a letter.").eP().hr();
 
         htm.sP().add("The MathOps system includes a wide variety of data spanning many different patterns of usage ",
                 "and generation.").eP();
@@ -1215,64 +1228,96 @@ public final class DocHandler implements HttpHandler {
         htm.addln("</ul>");
 
         htm.sP().add("Low-volume data that is read frequently is best served by an in-memory replicated cache that ",
-                "can be populated on startup from a \"source of truth\".  An administrative interface to alter this ",
-                "data would update the \"source of truth\" and update the in-memory data at the same time.  ",
-                "In-memory data would be replicated across multiple nodes in a high-availability cluster.").eP();
-        htm.sP().add("High-volume data would be better served by a partitioned database such as <b>Cassandra</b>, ",
-                "since queries in this system tend to rely on a few small key columns, and joins or database-level ",
-                "referential integrity constraints are not needed.").eP();
+                "can be populated on startup from a \"source of truth\".  A programmatic interface to alter this ",
+                "data would update the \"source of truth\" and update the in-memory cache at the same time.  ",
+                "The in-memory cache can be replicated across multiple nodes in a high-availability cluster.").eP();
+
+        htm.sP().add("High-volume data could be better served by an RDBMS like <b>PostgreSQL</b> or a partitioned ",
+                "database such as <b>Cassandra</b>, since queries in this system tend to rely on a few small key ",
+                "columns, and joins or database-level referential integrity constraints are not needed.").eP();
 
         htm.sP().add("The MathOps system stores data in the context of \"terms\", or semesters.  For example, Fall, ",
                 "Spring, and Summer semesters of each academic year.   There is exactly one term \"active\" at any ",
                 "moment in time.  Each term represents a contiguous span of days.  Terms do not overlap, and there ",
-                "are no gaps between terms. Old term configuration data is retained for archival and reference.  New ",
-                "term data can be prepared ahead of time, to become active when the current date crosses the boundary ",
-                "into a new term.").eP();
+                "are no gaps between terms. Old term configuration data is retained and reference.  New term data can ",
+                "be prepared ahead of time, to become active when the current date crosses the boundary into a new ",
+                "term.").eP();
+
         htm.sP().add("Data for the current term will be accessed frequently (with many updates), data for older terms ",
                 "will be accessed infrequently (and without updates), and data for upcoming terms will be created or ",
                 "updated infrequently as new terms approach.  Therefore, we do not want to store data for all terms ",
                 "in all tables and force scanning of large amounts of non-applicable data for each query within the ",
-                "active term.  To address this, we will create a schema for every term.").eP();
-        htm.sP().add("At a large scale, data is partitioned into several tablespaces:").eP();
+                "active term.  To address this, we define a separate schema for every term.").eP();
+
+        htm.sP().add("The schemas that make up the system include:").eP();
         htm.addln("<ul>");
-        htm.addln("<li><code>main</code> (data that does not vary by term, such as student data)</li>");
-        htm.addln("<li><code>extern</code> (data that comes from \"external\" systems like a University registrar's "
-                , "database)</li>");
-        htm.addln("<li><code>analyt</code> (analytics data that is updated when analytics need to be run)</li>");
-        htm.addln("<li><code>termYYYYMM</code> (one tablespace for each term, where <code>YYYY</code> is a 4-digit ",
+        htm.addln("<li><code>mathops</code>: the system schema used by the MathOps system and the persistence layer ",
+                "to store its own configuration.</li>");
+        htm.addln("<li><code>main</code>: data that does not vary by term, such as student data.  There are actually ",
+                "three schemas defined with identical table structures: <code>main</code> for production data, ",
+                "<code>main_d</code> for a development schema where changes can be tested, and <code>main_t</code> ",
+                "for low-level testing.</li>");
+        htm.addln("<li><code>extern</code>: data that is replicated from \"external\" systems like a University ",
+                "registrar's database. There are two schemas defined with identical structure: <code>extern</code> ",
+                "stores production data, and <code>extern_t</code> supports low-level testing.</li>");
+        htm.addln("<li><code>analyt</code>: analytics data that is generated or updated when analytics are run. ",
+                "There are two schemas defined with identical structure: <code>analyt</code> for production data, ",
+                "and <code>analyt_t</code> for low-level testing.</li>");
+        htm.addln("<li><code>termYYYYMM</code>: one schema for each term, where <code>YYYY</code> is a 4-digit ",
                 "year and <code>MM</code> is a unique 2-digit code for the term within the year, where ",
                 "<code>30</code> indicates a Spring term, <code>60</code> a Summer term, and <code>90</code> a Fall ",
-                "term)</li>");
+                "term.  Each of these schemas has identical table structure.  An additional <code>term_t</code> ",
+                "schema is defined with the same table structure for low-level testing.</li>");
         htm.addln("</ul>");
 
         htm.sP().add("Since some database products (like Cassandra) perform best when the numbers of tables to search ",
-                "through is small (say, under 100), tablespaces have been divided into  schemas, where each schema ",
-                "could run within its own cluster.").eP();
+                "through is small (say, under 100), each table group within a schema could exist within its own ",
+                "cluster.").eP();
     }
 
     /**
      * The page showing a single tablespace.
      *
-     * @param htm        the {@code HtmlBuilder} to which to append
-     * @param tablespace the tablespace name
-     * @param table      the table name (null to show the first table in the space)
+     * @param htm    the {@code HtmlBuilder} to which to append
+     * @param schema the tablespace name
+     * @param table  the table name (null to show the first table in the space)
      */
-    private void doTablespace(final HtmlBuilder htm, final String tablespace, final String table) {
+    private void doSchema(final HtmlBuilder htm, final String schema, final String table) {
 
-        doSchemaNav(htm, tablespace);
+        doSchemaNav(htm, schema);
 
-        htm.sH(4).add("Tablespace:&nbsp;<code>", tablespace, "</code>").eH(4);
+        final boolean isMathops = "mathops".equals(schema);
 
-        final Map<String, List<Table>> map = this.tables.get(tablespace);
+        if (isMathops) {
+            htm.sP().add("The <code>mathops</code> schema stores configuration data for the MathOps system itself, ",
+                    "including the Persistence Layer. Tables in this schema are updated by administrative tools.").eP();
 
+            htm.sP().add("The <code>persistence</code> table group stores configuration data for the MathOps " +
+                            "Persistence ",
+                    "Layer. It includes:").eP();
+            htm.addln("<ul>");
+            htm.addln("<li>A list of all defined schemas, including the <code>mathops</code> schema.</li>");
+            htm.addln("<li>A list of all defined table groups.</li>");
+            htm.addln("<li>A list of all defined tables, each assigned to one table group.</li>");
+            htm.addln("<li>A list of physical tables in each schema, and the associated table type.</li>");
+            htm.addln("<li>A list of data profiles that select a schema for each defined table.</li>");
+            htm.addln("<li>Users and their permissions for administration of the persistence layer.</li>");
+            htm.addln("</ul>");
+        }
+
+        htm.sH(4).add("Schema:&nbsp;<code>", schema, "</code>").eH(4);
+
+        final Map<String, List<Table>> map = this.tables.get(schema);
+
+        Table found = null;
+        String foundGroup = null;
         if (map != null) {
             htm.sDiv("flexbox");
             htm.addln("<nav>");
 
-            Table found = null;
             for (final Map.Entry<String, List<Table>> entry : map.entrySet()) {
-                final String schema = entry.getKey();
-                htm.addln("Schema:&nbsp;<span class='red'>", schema, "</span>").br();
+                final String group = entry.getKey();
+                htm.addln("Table Group:&nbsp;<span class='red'>", group, "</span>").br();
 
                 final List<Table> tablesInSchema = entry.getValue();
                 for (final Table tableInSchema : tablesInSchema) {
@@ -1281,30 +1326,28 @@ public final class DocHandler implements HttpHandler {
                     if (table == null) {
                         if (found == null) {
                             found = tableInSchema;
+                            foundGroup = group;
                             hit = true;
                         }
                     } else if (table.equals(tableName)) {
                         found = tableInSchema;
+                        foundGroup = group;
                         hit = true;
                     }
-                    if (hit) {
-                        htm.add("&bullet;&nbsp;");
-                    } else {
-                        htm.add("<span style='color:rgba(0,0,0,0%)'>&bullet;</span>&nbsp;");
-                    }
 
-                    htm.add("<a href='/doc/tablespace.html?tablespace=", tablespace, "&table=", tableName, "'><code>",
+                    emitBullet(htm, hit);
+                    htm.add("<a href='/doc/schema.html?schema=", schema, "&table=", tableName, "'><code>",
                             tableName, "</code></a>").br();
                 }
             }
             htm.addln("</nav>");
 
-            if (found != null) {
+            if (found != null && foundGroup != null) {
                 final String tableName = found.getName();
 
                 htm.addln("<article>");
-                htm.sH(5).add("Schema: ").sSpan("red").add("system").eSpan().div("hgap").add("Table: <code>", tableName,
-                        "</code>").eH(5);
+                htm.sH(5).add("Table Group: ").sSpan("red").add(foundGroup).eSpan().div("hgap")
+                        .add("Table: <code>", tableName, "</code>").eH(5);
 
                 final String desc = found.getDescription();
                 if (desc != null) {
@@ -1362,29 +1405,42 @@ public final class DocHandler implements HttpHandler {
     private void doGeneralNav(final HtmlBuilder htm, final String which) {
 
         htm.sP().add("<a class='lit1' href='/doc/index.html'>Generalized Database</a>",
-                "<a class='dim1' href='/doc/schemata.html'>Schemata</a>").eP();
+                "<a class='dim1' href='/doc/schemas.html'>Schemas</a>").eP();
 
         htm.sP();
-        htm.add(GEN_OVERVIEW.equals(which) ? A_CLASS_LIT2 : A_CLASS_DIM2);
+        final boolean isOverview = GEN_OVERVIEW.equals(which);
+        htm.add(isOverview ? A_CLASS_LIT2 : A_CLASS_DIM2);
         htm.add(" href='/doc/index.html'>Overview</a>");
-        htm.add(GEN_STRUCTURES.equals(which) ? A_CLASS_LIT2 : A_CLASS_DIM2);
+
+        final boolean isStructures = GEN_STRUCTURES.equals(which);
+        htm.add(isStructures ? A_CLASS_LIT2 : A_CLASS_DIM2);
         htm.add(" href='/doc/general2.html'>Structures</a>");
-        htm.add(GEN_SELECTING.equals(which) ? A_CLASS_LIT2 : A_CLASS_DIM2);
+
+        final boolean isSelecting = GEN_SELECTING.equals(which);
+        htm.add(isSelecting ? A_CLASS_LIT2 : A_CLASS_DIM2);
         htm.add(" href='/doc/general3.html'>Selecting</a>");
-        htm.add(GEN_UPDATING.equals(which) ? A_CLASS_LIT2 : A_CLASS_DIM2);
+
+        final boolean isUpdating = GEN_UPDATING.equals(which);
+        htm.add(isUpdating ? A_CLASS_LIT2 : A_CLASS_DIM2);
         htm.add(" href='/doc/general4.html'>Updating</a>");
-        htm.add(GEN_IMPL.equals(which) ? A_CLASS_LIT2 : A_CLASS_DIM2);
+
+        final boolean isImpl = GEN_IMPL.equals(which);
+        htm.add(isImpl ? A_CLASS_LIT2 : A_CLASS_DIM2);
         htm.add(" href='/doc/general5.html'>Implementations</a>");
-        htm.add(GEN_ENCODING.equals(which) ? A_CLASS_LIT2 : A_CLASS_DIM2);
+
+        final boolean isEncoding = GEN_ENCODING.equals(which);
+        htm.add(isEncoding ? A_CLASS_LIT2 : A_CLASS_DIM2);
         htm.add(" href='/doc/general6.html'>API Encoding</a>");
-        htm.add(GEN_ENDPOINTS.equals(which) ? A_CLASS_LIT2 : A_CLASS_DIM2);
+
+        final boolean isEndpoints = GEN_ENDPOINTS.equals(which);
+        htm.add(isEndpoints ? A_CLASS_LIT2 : A_CLASS_DIM2);
         htm.add(" href='/doc/general7.html'>API Endpoints</a>");
 
         htm.eP().hr();
     }
 
     /**
-     * Generates the navigation buttons in the "Schemata" sub-menu.
+     * Generates the navigation buttons in the "Schemas" sub-menu.
      *
      * @param htm   the {@code HtmlBuilder} to which to append
      * @param which the header selector
@@ -1392,16 +1448,29 @@ public final class DocHandler implements HttpHandler {
     private void doSchemaNav(final HtmlBuilder htm, final String which) {
 
         htm.sP().add("<a class='dim1' href='/doc/index.html'>Generalized Database</a>",
-                "<a class='lit1' href='/doc/schemata.html'>Schemata</a>").eP();
+                "<a class='lit1' href='/doc/schemas.html'>Schemas</a>").eP();
 
         htm.sP();
-        htm.add(SCHEMA_OVERVIEW.equals(which) ? A_CLASS_LIT2 : A_CLASS_DIM2);
-        htm.add(" href='/doc/schemata.html'>Overview</a>");
+        final boolean isOverview = SCHEMA_OVERVIEW.equals(which);
+        htm.add(isOverview ? A_CLASS_LIT2 : A_CLASS_DIM2);
+        htm.add(" href='/doc/schemas.html'>Overview</a>");
 
-        for (final String tablespace : this.tables.keySet()) {
-            htm.add(tablespace.equals(which) ? A_CLASS_LIT2 : A_CLASS_DIM2);
-            htm.add(" href='/doc/tablespace.html?tablespace=", tablespace, "'>Tablespace: <b>", tablespace, "</b></a>");
+        for (final String schema : this.tables.keySet()) {
+            final boolean match = schema.equals(which);
+            htm.add(match ? A_CLASS_LIT2 : A_CLASS_DIM2);
+            htm.add(" href='/doc/schema.html?schema=", schema, "'>Schema: <b>", schema, "</b></a>");
         }
         htm.eP().hr();
+    }
+
+    /**
+     * Emits a bullet character, either visible or hidden, to indicate a selected item in a list.
+     *
+     * @param htm     the {@code HtmlBuilder} to which to append
+     * @param visible true to make the bullet visible.
+     */
+    private static void emitBullet(final HtmlBuilder htm, final boolean visible) {
+
+        htm.add(visible ? "&bullet;&nbsp;" : "<span style='color:rgba(0,0,0,0%)'>&bullet;</span>&nbsp;");
     }
 }
