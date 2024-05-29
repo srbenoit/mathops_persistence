@@ -46,12 +46,6 @@ import java.util.Arrays;
  */
 public class Table implements Comparable<Table> {
 
-    /** Valid characters to start a table name. */
-    private static final String VALID_NAME_START = "abcdefghijklmnopqrstuvwxyz";
-
-    /** Valid characters in table names. */
-    private static final String VALID_NAME_CHARS = "abcdefghijklmnopqrstuvwxyz_0123456789";
-
     /** The schema name. */
     private final String schema;
 
@@ -98,13 +92,13 @@ public class Table implements Comparable<Table> {
             throw new IllegalArgumentException("Table description may not be null or blank");
         }
 
-        if (isInvalidName(theSchema)) {
+        if (NameUtils.isInvalidName(theSchema)) {
             throw new IllegalArgumentException("Schema name is not a valid identifier");
         }
-        if (isInvalidName(theGroup)) {
+        if (NameUtils.isInvalidName(theGroup)) {
             throw new IllegalArgumentException("Table group name is not a valid identifier");
         }
-        if (isInvalidName(theName)) {
+        if (NameUtils.isInvalidName(theName)) {
             throw new IllegalArgumentException("Table name is not a valid identifier");
         }
 
@@ -123,35 +117,6 @@ public class Table implements Comparable<Table> {
         this.description = theDescription;
         this.examples = theExamples;
         this.fields = theFields.clone();
-    }
-
-    /**
-     * Tests whether a name conforms to requirements.  Names must begin with a lowercase letter (a-z), and contain only
-     * lowercase letters, decimal digits, or the underscore character.
-     *
-     * @param theName the name to test
-     * @return {@code true} if the name is valid; {@code false} if not
-     */
-    private static boolean isInvalidName(final CharSequence theName) {
-
-        final int len = theName.length();
-        boolean valid = len > 0;
-
-        if (valid) {
-            final char ch1 = theName.charAt(0);
-            if (VALID_NAME_START.indexOf((int) ch1) == -1) {
-                valid = false;
-            }
-
-            for (int i = 1; valid && i < len; ++i) {
-                final char ch2 = theName.charAt(i);
-                if (VALID_NAME_CHARS.indexOf((int) ch2) == -1) {
-                    valid = false;
-                }
-            }
-        }
-
-        return !valid;
     }
 
     /**

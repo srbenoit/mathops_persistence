@@ -10,9 +10,18 @@ import dev.mathops.schema.main.RoleTable;
 import dev.mathops.schema.main.SchoolTable;
 import dev.mathops.schema.main.TermTable;
 import dev.mathops.schema.main.ZipCodeTable;
+import dev.mathops.schema.mathops.ByteRangeConstraintTable;
+import dev.mathops.schema.mathops.DoubleRangeConstraintTable;
 import dev.mathops.schema.mathops.FieldTable;
+import dev.mathops.schema.mathops.FloatRangeConstraintTable;
+import dev.mathops.schema.mathops.IntegerRangeConstraintTable;
+import dev.mathops.schema.mathops.LongRangeConstraintTable;
+import dev.mathops.schema.mathops.SchemaTable;
+import dev.mathops.schema.mathops.StringEnumeratedConstraintTable;
+import dev.mathops.schema.mathops.StringLengthConstraintTable;
 import dev.mathops.schema.mathops.TableTable;
 import dev.mathops.schema.term.TermWeekTable;
+import io.undertow.util.ByteRange;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -36,8 +45,16 @@ public final class AllTables {
         this.tables = new ArrayList<>(10);
 
         // mathops.persistence schema
+        this.tables.add(SchemaTable.INSTANCE);
         this.tables.add(TableTable.INSTANCE);
         this.tables.add(FieldTable.INSTANCE);
+        this.tables.add(ByteRangeConstraintTable.INSTANCE);
+        this.tables.add(IntegerRangeConstraintTable.INSTANCE);
+        this.tables.add(LongRangeConstraintTable.INSTANCE);
+        this.tables.add(FloatRangeConstraintTable.INSTANCE);
+        this.tables.add(DoubleRangeConstraintTable.INSTANCE);
+        this.tables.add(StringLengthConstraintTable.INSTANCE);
+        this.tables.add(StringEnumeratedConstraintTable.INSTANCE);
 
         // main.system schema
         this.tables.add(TermTable.INSTANCE);

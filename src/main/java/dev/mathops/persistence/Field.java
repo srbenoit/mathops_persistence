@@ -112,6 +112,9 @@ public final class Field implements Comparable<Field> {
         if (theRole == null) {
             throw new IllegalArgumentException("Field role may not be null");
         }
+        if (NameUtils.isInvalidName(theName)) {
+            throw new IllegalArgumentException("Field name is not a valid identifier");
+        }
 
         this.name = theName;
         this.type = theType;
