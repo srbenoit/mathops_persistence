@@ -44,6 +44,6 @@ public final class ZipCodeTable extends Table {
      */
     private ZipCodeTable() {
 
-        super("main.system", "zip_code", DESCR, null, F_ZIP_CODE, F_CITY, F_STATE);
+        super("main", "system", "zip_code", DESCR, null, F_ZIP_CODE, F_CITY, F_STATE);
     }
 }

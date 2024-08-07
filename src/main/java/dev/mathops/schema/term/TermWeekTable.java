@@ -51,6 +51,6 @@ public final class TermWeekTable extends Table {
      */
     private TermWeekTable() {
 
-        super("term.system", "term_week", DESCR, EXAMPLES, F_WEEK_NBR, F_START_DATE, F_END_DATE);
+        super("term", "system", "term_week", DESCR, EXAMPLES, F_WEEK_NBR, F_START_DATE, F_END_DATE);
     }
 }

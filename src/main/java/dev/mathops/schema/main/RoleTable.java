@@ -38,6 +38,6 @@ public final class RoleTable extends Table {
      */
     private RoleTable() {
 
-        super("main.system", "role", DESCR, null, F_ROLE_ID, F_ROLE_NAME);
+        super("main", "system", "role", DESCR, null, F_ROLE_ID, F_ROLE_NAME);
     }
 }

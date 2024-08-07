@@ -81,7 +81,7 @@ public final class HoldTypeTable extends Table {
      */
     private HoldTypeTable() {
 
-        super("main.system", "hold_type", DESCR, EXAMPLES, F_HOLD_ID, F_SEVERITY, F_HOLD_CATEGORY, F_ADD_PERM_LVL,
+        super("main", "system", "hold_type", DESCR, EXAMPLES, F_HOLD_ID, F_SEVERITY, F_HOLD_CATEGORY, F_ADD_PERM_LVL,
                 F_REMOVE_PERM_LVL, F_SUSPEND_PERM_LVL, F_TIMES_TO_DISPLAY);
     }
 }

@@ -46,6 +46,6 @@ public final class RolePermissionTable extends Table {
      */
     private RolePermissionTable() {
 
-        super("main.system", "role_permission", DESCR, null, F_ROLE_ID, F_ACTIVITY, F_PERM_LVL);
+        super("main", "system", "role_permission", DESCR, null, F_ROLE_ID, F_ACTIVITY, F_PERM_LVL);
     }
 }

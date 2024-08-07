@@ -97,7 +97,7 @@ public final class LocalLoginTable extends Table {
      */
     private LocalLoginTable() {
 
-        super("main.system", "local_login", DESCR, null, F_LOGIN, F_USER_ID, F_USER_TYPE, F_EMAIL, F_SALT, F_STORED_KEY,
+        super("main", "system", "local_login", DESCR, null, F_LOGIN, F_USER_ID, F_USER_TYPE, F_EMAIL, F_SALT, F_STORED_KEY,
                 F_SERVER_KEY, F_WHEN_CREATED, F_WHEN_EXPIRES, F_WHEN_LAST_LOGGED_IN, F_WHEN_LAST_FAILED,
                 F_NBR_FAILED_LOGINS, F_FORCE_PWD_CHANGE);
     }

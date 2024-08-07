@@ -1,46 +1,32 @@
 package dev.mathops.persistence.site;
 
-import dev.mathops.persistence.site.session.SessionManager;
-import io.undertow.Handlers;
-import io.undertow.Undertow;
+import dev.mathops.commons.CoreConstants;
+import dev.mathops.commons.installation.Installation;
 import dev.mathops.commons.log.Log;
-import io.undertow.server.HttpHandler;
-import io.undertow.server.handlers.PathHandler;
-import io.undertow.server.handlers.RequestBufferingHandler;
-import io.undertow.server.handlers.ResponseCodeHandler;
+import dev.mathops.commons.log.LogBase;
+import dev.mathops.persistence.site.session.SessionManager;
+import jakarta.servlet.ServletConfig;
+import jakarta.servlet.ServletContext;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.ServletRequest;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
-import javax.net.ssl.KeyManager;
-import javax.net.ssl.KeyManagerFactory;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.TrustManagerFactory;
 import java.io.File;
 import java.io.IOException;
-import java.security.KeyManagementException;
-import java.security.KeyStore;
-import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
-import java.security.UnrecoverableKeyException;
-import java.security.cert.CertificateException;
-import java.util.logging.Handler;
 
 /**
- * A stand-alone HTTP web server that provides the service API as well as a management interface.
+ * A servlet the provides the data access API as well as a website with documentation and administrative functions.
+ *
+ * <p>
+ * Administration is only allowed from a fixed set of IP addresses and logins, as configured in a file on the server.
  */
-public final class ServiceSite {
+public final class ServiceSite extends HttpServlet {
 
-    /** The host on which to listen. */
-    private static final String HOST = "localhost";
-
-    /** The keystore filename. */
-    private static final String KEYSTORE = "tlskeystore.jks";
-
-    /** The keystore password. */
-    private static final char[] STOREPASS = "a23095u".toCharArray();
-
-    /** The alias of the self-signed certificate. */
-    private static final String SELF_SIGNED_ALIAS = "selfsigned";
+    /** The name of the servlet. */
+    private static final String TITLE = "MathOps Persistence Layer servlet";
 
     /** The prefix to select the API handler. */
     private static final String API_PREFIX = "/api";
@@ -51,223 +37,251 @@ public final class ServiceSite {
     /** The prefix to select the MGT handler. */
     private static final String MGT_PREFIX = "/mgt";
 
-    /** The configuration directory. */
-    private final File configDir;
+    /** The servlet configuration. */
+    private ServletConfig servletConfig = null;
 
-    /** The SSL/TLS context. */
-    private final SSLContext context;
+    /** The servlet context. */
+    private ServletContext servletContext = null;
+
+    /** The installation. */
+    private Installation installation = null;
+
+    /** Installation property with the path to the configuration directory. */
+    private static final String CONFIG_DIR_PROPERTY = "public-dir";
+
+    /** The default configuration directory, used when none specified. */
+    private static final String DEFAULT_CONFIG_DIR = "/opt/mathops";
+
+    /** The configuration directory. */
+    private File configDir = null;
+
+    /** The set of authorized administrators. */
+    private Administrators administrators = null;
 
     /** The session manager. */
-    private final SessionManager sessionMgr;
+    private SessionManager sessionMgr = null;
 
     /**
      * Constructs a new {@code ServiceSite}.
-     *
-     * @param theConfigDir the configuration directory
-     * @throws NoSuchAlgorithmException if either the strong random number generator or the SHA-512 message digest could
-     *                                  not be created
-     * @throws KeyStoreException if the self-signed TLS certificate did not exist and could not be created
      */
-    private ServiceSite(final File theConfigDir) throws NoSuchAlgorithmException, KeyStoreException {
+    private ServiceSite() {
 
-        this.configDir = theConfigDir;
-        this.sessionMgr = new SessionManager(theConfigDir);
-        this.context = getSSLContext();
+        super();
     }
 
     /**
-     * Creates the SSL context for HTTPS connections.  This uses a certificate in the configuration directory.  If no
-     * such certificate exists, a self-signed certificate is created and used.
+     * Initializes the servlet.
      *
+     * @param config the servlet context in which the servlet is being initialized
+     * @throws ServletException if the servlet could not be initialized
+     */
+    @Override
+    public void init(final ServletConfig config) throws ServletException {
+
+        this.servletConfig = config;
+        this.servletContext = config.getServletContext();
+
+        this.installation = (Installation) this.servletContext.getAttribute("Installation");
+
+        final String serverInfo = this.servletContext.getServerInfo();
+        Log.info(TITLE, " initializing: ", serverInfo);
+
+        this.configDir = this.installation.extractFileProperty(CONFIG_DIR_PROPERTY, new File(DEFAULT_CONFIG_DIR));
+        this.administrators = new Administrators(this.configDir);
+
+        try {
+            this.sessionMgr = new SessionManager(this.configDir);
+        } catch (final NoSuchAlgorithmException ex) {
+            throw new ServletException(ex);
+        }
+
+        Log.info(TITLE, " initialized");
+    }
+
+    /**
+     * Gets the servlet configuration.
+     *
+     * @return the servlet configuration
+     */
+    @Override
+    public ServletConfig getServletConfig() {
+
+        return this.servletConfig;
+    }
+
+    /**
+     * Gets the servlet context under which this servlet was initialized.
+     *
+     * @return the servlet context
+     */
+    @Override
+    public ServletContext getServletContext() {
+
+        return this.servletContext;
+    }
+
+    /**
+     * Gets the servlet information string.
+     *
+     * @return the information string
+     */
+    @Override
+    public String getServletInfo() {
+
+        return TITLE;
+    }
+
+    /**
+     * Called when the servlet container unloads the servlet.
      * <p>
-     * The self-signed certificate can be created using the following commands with "keytool":
+     * This method reduces the reference count on the installation - when that count reaches zero, the installation's
+     * JMX server is allowed to stop
+     */
+    @Override
+    public void destroy() {
+
+        Log.info(TITLE, " terminated");
+    }
+
+    /**
+     * Processes a request. The first part of the request path (between the first and second '/') is used to determine
+     * the site, then if the site is valid, the request is dispatched to the site processor.
+     *
+     * @param req  the request
+     * @param resp the response
+     * @throws IOException if there is an error writing the response
+     */
+    @Override
+    protected void service(final HttpServletRequest req, final HttpServletResponse resp) throws IOException {
+
+        req.setCharacterEncoding("UTF-8");
+
+        final String remote = req.getRemoteAddr();
+
+        try {
+            final String requestHost = getHost(req);
+            final String requestPath = getPath(req);
+            LogBase.setHostPath(requestHost, requestPath, remote);
+
+            try {
+                if (req.isSecure()) {
+                    serviceSecure(requestPath, req, resp);
+                } else {
+                    final String reqScheme = req.getScheme();
+                    if ("http".equals(reqScheme)) {
+                        serviceInsecure(requestPath, req, resp);
+                    } else {
+                        Log.warning("Invalid scheme: ", reqScheme);
+                        resp.sendError(HttpServletResponse.SC_NOT_FOUND);
+                    }
+                }
+            } finally {
+                LogBase.setHostPath(null, null, null);
+            }
+        } catch (final IOException ex) {
+            // Make sure unexpected exceptions get logged rather than silently failing
+            Log.severe(ex);
+            throw ex;
+        }
+    }
+
+    /**
+     * Gets the host from a request, removing any trailing "dev" or "test" from the leading component (so
+     * "foodev.bar.baz" and "footest.bar.baz" each return "foo.bar.baz" as the host).
+     *
+     * @param req the servlet request
+     * @return the host
+     */
+    public static String getHost(final ServletRequest req) {
+
+        final String server = req.getServerName();
+        final String host;
+
+        final int firstDot = server.indexOf('.');
+        if (firstDot < 4) {
+            host = server;
+        } else {
+            final String name = server.substring(0, firstDot);
+            if (name.endsWith("dev")) {
+                host = name.substring(0, name.length() - 3) + server.substring(firstDot);
+            } else if (name.endsWith("test")) {
+                host = name.substring(0, name.length() - 4) + server.substring(firstDot);
+            } else {
+                host = server;
+            }
+        }
+
+        return host;
+    }
+
+    /**
+     * Gets the servlet path from a request, converting a {@code null} value to the empty string. This returns the whole
+     * path (the servlet path + the path info part).
+     * <p>
+     * Handlers should be registered on either the empty string or a path with a leading "/" and no trailing "/". The
+     * reason for this behavior is that we want a handler to receive the same relative paths when registered on "" as it
+     * would get if registered on "/foo".
      *
      * <pre>
-     * keytool -genkey -keyalg RSA -alias selfsigned -keystore tlskeystore.jks -storepass a23095u -validity 36000
-     *         -keysize 4096
-     * Enter the distinguished name. Provide a single dot (.) to leave a sub-component empty or press ENTER to use the
-     * default value in braces.
-     * What is your first and last name?
-     *   [Unknown]:  localhost
-     * What is the name of your organizational unit?
-     *   [Unknown]:  Persistence
-     * What is the name of your organization?
-     *   [Unknown]:  MathOps
-     * What is the name of your City or Locality?
-     *   [Unknown]:  Fort Collins
-     * What is the name of your State or Province?
-     *   [Unknown]:  Colorado
-     * What is the two-letter country code for this unit?
-     *   [Unknown]:  US
-     * Is CN=localhost, OU=Persistence, O=MathOps, L=Fort Collins, ST=Colorado, C=US correct?
-     *   [no]:  yes
-     * Generating 4,096 bit RSA key pair and self-signed certificate (SHA384withRSA) with a validity of 36,000 days
-     *         for: CN=localhost, OU=Persistence, O=MathOps, L=Fort Collins, ST=Colorado, C=US
+     * http://www.example.com      --> ""     --> "" + ""
+     * http://www.example.com/     --> "/"    --> "" + "/"
+     * http://www.example.com/a    --> "/a"   --> "" + "/a"
+     * http://www.example.com/a/   --> "/a/"  --> "" + "/a/"
+     * http://www.example.com/a/b  --> "/a/b" --> "" + "/a/b"
+     *
+     * http://www.example.com/foo      --> "/foo"     --> "/foo" + ""
+     * http://www.example.com/foo/     --> "/foo/"    --> "/foo" + "/"
+     * http://www.example.com/foo/a    --> "/foo/a"   --> "/foo" + "/a"
+     * http://www.example.com/foo/a/   --> "/foo/a/"  --> "/foo" + "/a/"
+     * http://www.example.com/foo/a/b  --> "/foo/a/b" --> "/foo" + "/a/b"
      * </pre>
      *
-     * @return the SSL context
-     * @throws NoSuchAlgorithmException if a trust manager could not be created
-     * @throws KeyStoreException if the self-signed TLS certificate did not exist and could not be created
+     * @param req the servlet request
+     * @return the path
      */
-    private SSLContext getSSLContext() throws NoSuchAlgorithmException, KeyStoreException {
+    public static String getPath(final HttpServletRequest req) {
 
-        SSLContext context = null;
+        final String sPath = req.getServletPath();
+        final String iPath = req.getPathInfo();
 
-        final File storeFile = new File(this.configDir, KEYSTORE);
-        KeyStore store = null;
+        final String path = sPath == null ? iPath : iPath == null ? sPath : sPath + iPath;
 
-        if (storeFile.exists()) {
-            try {
-                final KeyStore loadedStore = KeyStore.getInstance(storeFile, STOREPASS);
-
-                if (loadedStore.getCertificate(SELF_SIGNED_ALIAS) == null) {
-                    Log.warning("'", KEYSTORE, "' does not contain a self-signed certificate");
-                } else {
-                    store = loadedStore;
-                }
-            } catch (final IOException | KeyStoreException | NoSuchAlgorithmException | CertificateException ex) {
-                Log.warning("Unable to load '", KEYSTORE, "'.", ex);
-            }
-        }
-
-        if (store == null) {
-            throw new KeyStoreException("Failed to load self-signed TLS certificate.");
-        }
-
-        final String keyAlg = KeyManagerFactory.getDefaultAlgorithm();
-        final KeyManagerFactory kmf = KeyManagerFactory.getInstance(keyAlg);
-        try {
-            kmf.init(store, STOREPASS);
-        } catch (final UnrecoverableKeyException ex) {
-            throw new KeyStoreException("Failed to read private key in self-signed TLS certificate.", ex);
-        }
-        final KeyManager[] keyManagers = kmf.getKeyManagers();
-
-        final String trustAlg = TrustManagerFactory.getDefaultAlgorithm();
-        final TrustManagerFactory tmf = TrustManagerFactory.getInstance(trustAlg);
-        tmf.init(store);
-        final TrustManager[] trustManagers = tmf.getTrustManagers();
-
-        final SecureRandom rnd = SecureRandom.getInstanceStrong();
-
-        try {
-            context = SSLContext.getInstance("TLSv1.2");
-            context.init(keyManagers, trustManagers, rnd);
-        } catch (final KeyManagementException ex) {
-            throw new KeyStoreException("Failed to create SSL context.", ex);
-        }
-
-        return context;
+        return path == null ? CoreConstants.EMPTY : path;
     }
 
     /**
-     * Runs the service site using a specified configuration directory.
-     */
-    private void run() {
-
-        Log.info("Using configuration directory: ", this.configDir);
-
-        final int apiPrefixLen = API_PREFIX.length();
-        final HttpHandler apiHandler = new ApiHandler(apiPrefixLen, this.configDir, this.sessionMgr);
-
-        final int docPrefixLen = DOC_PREFIX.length();
-        final HttpHandler docHandler = new DocHandler(docPrefixLen);
-
-        final int mgtPrefixLen = MGT_PREFIX.length();
-        final HttpHandler mgtHandler = new ManagementHandler(mgtPrefixLen, this.configDir, this.sessionMgr);
-
-        final PathHandler pathHandler = Handlers.path(new ResponseCodeHandler(404));
-        pathHandler.addPrefixPath(API_PREFIX, apiHandler);
-        pathHandler.addPrefixPath(DOC_PREFIX, docHandler);
-        pathHandler.addPrefixPath(MGT_PREFIX, mgtHandler);
-
-        final HttpHandler h = new RequestBufferingHandler(pathHandler, 10);
-
-        final Undertow server1 = Undertow.builder().addHttpListener(8000, HOST).setHandler(h).build();
-        final Undertow server2 = Undertow.builder().addHttpsListener(8443, HOST, this.context).setHandler(h).build();
-
-        server2.start();
-        server1.start();
-    }
-
-    /**
-     * Determines the configuration file directory, either from command-line arguments or as a default directory below
-     * the user's home directory.
+     * Processes a request when it is known the connection was secured. The first part of the request path is used to
+     * determine whether the request is for a public file, or if not, to determine the mid-controller to which to
+     * forward the request.
      *
-     * @param args command-line arguments
-     * @return the configuration directory if that directory could successfully be determined (this will be guaranteed
-     *         to be a directory that exists) or {@code null} if the directory could not be determined, in which case an
-     *         error message will have been printed using {@code Log.fine}
+     * @param requestPath the request path
+     * @param req         the HTTP servlet request
+     * @param resp        the HTTP servlet response
+     * @throws IOException if there is an error writing the response
      */
-    private static File determineConfigDir(final String... args) {
+    private void serviceSecure(final String requestPath, final HttpServletRequest req,
+                               final HttpServletResponse resp) throws IOException {
 
-        File configDir = null;
-        boolean ok = true;
+        Log.info("Servicing secure request: " + requestPath);
 
-        final int numArgs = args == null ? 0 : args.length;
-        for (int i = 0; i < numArgs; ++i) {
-            if ("--configdir".equals(args[i])) {
-                if (configDir == null) {
-                    if (i + 1 < numArgs) {
-                        final String configPath = args[i + 1];
-                        final File dir = new File(configPath);
-
-                        if (dir.exists() && dir.isDirectory()) {
-                            configDir = dir;
-                        } else {
-                            Log.fine("ERROR: Configuration directory \"", configPath, "\" is not a valid directory.");
-                            ok = false;
-                            break;
-                        }
-                    } else {
-                        Log.fine("ERROR: \"--configdir\" argument must be followed by a directory path.");
-                        ok = false;
-                        break;
-                    }
-                } else {
-                    Log.fine("ERROR: multiple \"--configdir\" arguments are not allowed.");
-                    ok = false;
-                    break;
-                }
-            }
-        }
-
-        if (ok && configDir == null) {
-            final String userHome = System.getProperty("user.home");
-
-            final File dir = new File(userHome);
-
-            if (dir.exists() && dir.isDirectory()) {
-                configDir = new File(dir, "mathops_persistence");
-                if (!(configDir.exists() || configDir.mkdir())) {
-                    final String path = configDir.getAbsolutePath();
-                    Log.fine("ERROR: User home directory \"", path, "\" is not a valid directory.");
-                }
-            } else {
-                Log.fine("ERROR: User home directory \"", userHome, "\" is not a valid directory.");
-            }
-        }
-
-        return configDir;
+        resp.sendError(HttpServletResponse.SC_NOT_FOUND);
     }
 
     /**
-     * Main method to run the server.
+     * Processes a request when it is known the connection is not secure. The first part of the request path is used to
+     * determine whether the request is for a public file, or if not, to determine the mid-controller to which to
+     * forward the request.
      *
-     * @param args command-line arguments
+     * @param requestPath the request path
+     * @param req         the HTTP servlet request
+     * @param resp        the HTTP servlet response
+     * @throws IOException if there is an error writing the response
      */
-    public static void main(final String... args) {
+    private void serviceInsecure(final String requestPath, final HttpServletRequest req,
+                                 final HttpServletResponse resp) throws IOException {
 
-        final File configDir = determineConfigDir(args);
+        Log.info("Servicing insecure request: " + requestPath);
 
-        if (configDir != null) {
-            try {
-                new ServiceSite(configDir).run();
-            } catch (final NoSuchAlgorithmException ex) {
-                Log.severe("Error while creating SecureRandom or MessageDigest.", ex);
-            } catch (final KeyStoreException ex) {
-                Log.severe("Error while generating self-signed certificate.", ex);
-            }
-        }
+        resp.sendError(HttpServletResponse.SC_NOT_FOUND);
     }
 }

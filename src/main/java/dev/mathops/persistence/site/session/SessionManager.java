@@ -80,6 +80,7 @@ public final class SessionManager {
      * Constructs a new {@code SessionManager}.
      *
      * @param theConfigDir the configuration directory in which to find the "login.json" file
+     * @throws NoSuchAlgorithmException if the message digest cannot be created
      */
     public SessionManager(final File theConfigDir) throws NoSuchAlgorithmException {
 
@@ -224,9 +225,9 @@ public final class SessionManager {
         for (final Object entry : array) {
             if (entry instanceof final Object[] inner) {
                 if (inner.length == 4 && inner[0] instanceof final String username
-                        && inner[1] instanceof final String salt
-                        && inner[2] instanceof final String hash
-                        && inner[3] instanceof final String roles) {
+                    && inner[1] instanceof final String salt
+                    && inner[2] instanceof final String hash
+                    && inner[3] instanceof final String roles) {
 
                     if (salt.length() < MIN_SALT_LEN) {
                         Log.warning("Salt value too short in '", FILENAME, "' entry.");

@@ -76,7 +76,7 @@ public final class SchoolTable extends Table {
      */
     private SchoolTable() {
 
-        super("main.system", "school", DESCR, null, F_CEEB_CODE, F_NAME, F_MAILING_ADDR, F_CITY, F_STATE, F_ZIP_CODE);
+        super("main", "system", "school", DESCR, null, F_CEEB_CODE, F_NAME, F_MAILING_ADDR, F_CITY, F_STATE, F_ZIP_CODE);
     }
 
     /**

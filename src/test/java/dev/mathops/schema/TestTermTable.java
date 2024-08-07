@@ -14,7 +14,6 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertSame;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Tests for the {@code Builder} class.
@@ -110,8 +109,8 @@ final class TestTermTable {
 
         final Integer activeIndexObj = Integer.valueOf(theActiveIndex);
 
-        return new SelectionCriteria(this, new IntegerFieldCriterion(F_ACTIVE_INDEX, ENumericMatchType.EXACT_IN,
-                activeIndexObj));
+        return new SelectionCriteria(this, new IntegerFieldCriterion(TermTable.F_ACTIVE_INDEX,
+                ENumericMatchType.EXACT_IN, activeIndexObj));
     }
 
 

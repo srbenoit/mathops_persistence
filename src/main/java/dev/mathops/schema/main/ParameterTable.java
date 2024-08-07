@@ -102,7 +102,7 @@ public final class ParameterTable extends Table {
      */
     private ParameterTable() {
 
-        super("main.system", "parameter", DESCR, null, F_NAME, F_STRING_1, F_STRING_2, F_STRING_3, F_STRING_4,
+        super("main", "system", "parameter", DESCR, null, F_NAME, F_STRING_1, F_STRING_2, F_STRING_3, F_STRING_4,
                 F_STRING_5, F_INTEGER_1, F_INTEGER_2, F_INTEGER_3, F_INTEGER_4, F_INTEGER_5, F_DATE_1, F_DATE_2,
                 F_TIME_1, F_TIME_2);
     }

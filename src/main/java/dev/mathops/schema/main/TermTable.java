@@ -16,27 +16,37 @@ public final class TermTable extends Table {
 
     /** The table description (HTML). */
     private static final String DESCR = "<p>Each row stores the top-level configuration of a term.</p>"
-            + "<p>Conceptually a sequence of terms is a non-overlapping sequence of date ranges with no gaps, where "
-            + "one term begins the day after the prior term ended.  Exactly one term is 'active' (the term in which "
-            + "the current date lies), and every term has an active index (0 for the active term, +1 for the next, "
-            + "-1 for the prior, and so forth).</p>"
-            + "<p>Each row in this table should map to a corresponding <code>termYYYYMM</code> tablespace, withe the "
-            + "associated schemata.  When a new row is created, the corresponding tablespace (and its tables) should "
-            + "be created.  When a row is deleted, the corresponding tablespace (and its tables) should be archived "
-            + "to files then deleted.  Applications can query for the active term, then use that to select the "
-            + "appropriate term tablespace for queries of term-specific data.</p>"
-            + "<p>At the boundary between terms (midnight at the end of a term's last day), the <code>active "
-            + "index</code> of all term rows should be incremented.</p>";
+                                        + "<p>Conceptually a sequence of terms is a non-overlapping sequence of date " +
+                                        "ranges with no gaps, where "
+                                        + "one term begins the day after the prior term ended.  Exactly one term is " +
+                                        "'active' (the term in which "
+                                        + "the current date lies), and every term has an active index (0 for the " +
+                                        "active term, +1 for the next, "
+                                        + "-1 for the prior, and so forth).</p>"
+                                        + "<p>Each row in this table should map to a corresponding " +
+                                        "<code>termYYYYMM</code> tablespace, withe the "
+                                        + "associated schemata.  When a new row is created, the corresponding " +
+                                        "tablespace (and its tables) should "
+                                        + "be created.  When a row is deleted, the corresponding tablespace (and its " +
+                                        "tables) should be archived "
+                                        + "to files then deleted.  Applications can query for the active term, then " +
+                                        "use that to select the "
+                                        + "appropriate term tablespace for queries of term-specific data.</p>"
+                                        + "<p>At the boundary between terms (midnight at the end of a term's last " +
+                                        "day), the <code>active "
+                                        + "index</code> of all term rows should be incremented.</p>";
 
     /** Examples (HTML). */
     private static final String EXAMPLES = "<p>Under a typical \"fall, spring, summer\" academic year, if the current "
-            + "year is 2023, and the fall term is active, there would be a \"Fall 2023\" term row with active index 0, "
-            + "a \"Spring 2024\" term row with active index 1, a \"Summer, 2024\" term with active index 2, a "
-            + "\"Summer 2023\" term with active index -1, and so forth.</p>";
+                                           + "year is 2023, and the fall term is active, there would be a \"Fall " +
+                                           "2023\" term row with active index 0, "
+                                           + "a \"Spring 2024\" term row with active index 1, a \"Summer, 2024\" term" +
+                                           " with active index 2, a "
+                                           + "\"Summer 2023\" term with active index -1, and so forth.</p>";
 
     /**
-     * Term IDs, which are six-digit integers of the form "202330" (Spring 2023), "202360" (Summer 2023), or
-     * "202390" (Fall, 2023).
+     * Term IDs, which are six-digit integers of the form "202330" (Spring 2023), "202360" (Summer 2023), or "202390"
+     * (Fall, 2023).
      */
     private static final Field F_TERM;
 
@@ -56,9 +66,9 @@ public final class TermTable extends Table {
     private static final Field F_ACADEMIC_YEAR;
 
     /**
-     * The active index.  0 for the currently active term; +1 for the next term, +2 for the term after the +1 term,
-     * -1 for the prior term, -2 for the term prior to the prior term, etc.  At each transition between terms, all
-     * records are updated to increment their active index.
+     * The active index.  0 for the currently active term; +1 for the next term, +2 for the term after the +1 term, -1
+     * for the prior term, -2 for the term prior to the prior term, etc.  At each transition between terms, all records
+     * are updated to increment their active index.
      */
     private static final Field F_ACTIVE_INDEX;
 
@@ -97,7 +107,8 @@ public final class TermTable extends Table {
      */
     private TermTable() {
 
-        super("main.system", "term", DESCR, EXAMPLES, F_TERM, F_START_DATE, F_END_DATE, F_ACADEMIC_YEAR, F_ACTIVE_INDEX,
+        super("main", "system", "term", DESCR, EXAMPLES, F_TERM, F_START_DATE, F_END_DATE, F_ACADEMIC_YEAR,
+                F_ACTIVE_INDEX,
                 F_DROP_DEADLINE, F_WITHDRAW_DEADLINE);
     }
 
