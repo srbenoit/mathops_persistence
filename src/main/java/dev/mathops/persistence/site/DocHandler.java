@@ -110,23 +110,24 @@ final class DocHandler {
 
             startPage(htm);
             emitHeader(htm);
-            htm.sDiv(null, "style='padding-left:20px;'");
-            htm.sH(2).add("System Documentation").eH(2);
+            htm.sDiv(null, "style='padding:20px;'");
 
             if (path.isEmpty() || "/".equals(path) || "/index.html".equals(path)) {
-                doGeneral1(htm);
+                doGeneralIndex(htm);
+            } else if ("/general1.html".equals(path)) {
+                doGeneralDatabase(htm);
             } else if ("/general2.html".equals(path)) {
-                doGeneral2(htm);
+                doGeneralStructures(htm);
             } else if ("/general3.html".equals(path)) {
-                doGeneral3(htm);
+                doGeneralSelectionCriteria(htm);
             } else if ("/general4.html".equals(path)) {
-                doGeneral4(htm);
+                doGeneralUpdatedValues(htm);
             } else if ("/general5.html".equals(path)) {
-                doGeneral5(htm);
+                doGeneralImplementations(htm);
             } else if ("/general6.html".equals(path)) {
-                doGeneral6(htm);
+                doGeneralApiEncoding(htm);
             } else if ("/general7.html".equals(path)) {
-                doGeneral7(htm);
+                doGeneralApiEndpoints(htm);
             } else if ("/schemas.html".equals(path)) {
                 doSchemas(htm);
             } else if ("/schema.html".equals(path)) {
@@ -173,42 +174,31 @@ final class DocHandler {
 
         htm.addln("<html><head>");
         htm.addln(" <style>");
-        htm.addln("  body { background-color:white; font-family:sans-serif; font-size:13pt;}");
-        htm.addln("  h1 { color:white; margin:0; font-size:30pt; font-weight:100; font-stretch:condensed; }");
-        htm.addln("  h1 strong { font-weight:700; color:#C8C372; }");
-        htm.addln("  h2 { color:#1E4D2B; margin:0; font-size:24pt; font-weight:200; font-stretch:condensed; }");
-        htm.addln("  h3 { color:#ED7D31; margin:0; font-size:24pt; font-weight:200; padding-top:10pt; ",
-                "font-stretch:normal;}");
-        htm.addln("  h3 strong { font-weight:700; }");
-        htm.addln("  h4 { color:#1E4D2B; margin:0; font-size:20pt; font-weight:500; padding-top:10pt; ",
-                "font-stretch:normal;}");
-        htm.addln("  h5 { color:#1E4D2B; margin:0; font-size:17pt; font-weight:500; padding-top:10pt; ",
-                "font-stretch:normal;}");
-        htm.addln("  article h5 { padding-top:0; }");
-        htm.addln("  a { text-decoration:none; }");
-        htm.addln("  a.dim1 { color:#ccc; background-color:#1E4D2B; padding:4pt 12pt; border-radius: 8pt; ",
-                "font-size:14pt; margin-right:10px;}");
-        htm.addln("  a.lit1 { color:white; background-color:#396844; padding:4pt 12pt; border-radius: 8pt;",
-                "border:1px solid black; box-shadow:rgba(0,0,0,0.25) 2px 4px 6px; font-size:14pt; margin-right:10px;}");
-        htm.addln("  a.dim2 { color:#ddd; background-color:#b55909; padding:4pt 12pt; border-radius: 8pt; ",
-                "font-size:14pt; margin-right:10px;}");
-        htm.addln("  a.lit2 { color:white; background-color:#D9782D; padding:4pt 12pt; border-radius: 8pt;",
-                "border:1px solid black; box-shadow:rgba(0,0,0,0.25) 2px 4px 6px; font-size:14pt; margin-right:10px;}");
-        htm.addln("  .flexbox { display:flex; align-content:flex-start;}");
-        htm.addln("  nav {float:left; border-right:1px solid gray; border-left:1px solid gray; ",
-                "background-color:#eee; padding:10px; margin-top:10px; }");
-        htm.addln("  article {float:left; padding:0 20px 0 20px; margin-top:10px; width:auto; order:1; flex-grow:1; }");
-        htm.addln("  code { color:#0070C0; font-weight:700;}");
-        htm.addln("  th { text-align:left; background-color:#eee; }");
-        htm.addln("  td { vertical-align:top; padding:5px;}");
-        htm.addln("  .indent { margin-left:20px; }");
-        htm.addln("  .redhead { color:red; font-style:italic; margin-top:4px; margin-bottom:2px; }");
-        htm.addln("  p.innerhead { color:#006144; font-weight:700; margin-top:12px; margin-bottom:2px; }");
-        htm.addln("  .red { color:#B00; font-weight:700;}");
-        htm.addln("  .constraint { color:#D9782D; }");
-        htm.addln("  .thin { margin-top:3px; margin-bottom:3px; }");
-        htm.addln("  .vgap { min-height:15px; }");
-        htm.addln("  .hgap { display:inline-block; min-width:30px; }");
+        htm.addln("  body {background-color:white;font-family:sans-serif;font-size:11pt;margin:0;}");
+        htm.addln("  h1 {color:white;margin:0;font-size:25pt;font-weight:100;font-stretch:condensed;margin:0;}");
+        htm.addln("  h1 strong {font-weight:700;color:#C8C372;}");
+        htm.addln("  h2 {color:#1E4D2B;margin:0;font-size:20pt;font-weight:200;font-stretch:condensed;}");
+        htm.addln("  h3 {color:#000;margin:0;font-size:16pt;font-weight:400;padding-top:8pt;font-stretch:condensed;}");
+        htm.addln("  h3 strong {font-weight:700;}");
+        htm.addln("  h4 {color:#105456;margin:0;font-size:13pt;font-weight:700;padding-top:8pt;font-stretch:normal;}");
+        htm.addln("  h5 {color:#105456;margin:0;font-size:12pt;font-weight:700;padding-top:8pt;font-stretch:normal;}");
+        htm.addln("  article h5 {padding-top:0;}");
+        htm.addln("  a {font-family:sans-serif;font-size:11pt;}");
+        htm.addln("  .flexbox {display:flex;align-content:flex-start;}");
+        htm.addln("  nav {float:left;border-right:1px solid gray;border-left:1px solid gray;background-color:#ccc;",
+                "padding:10px;margin-top:10px;}");
+        htm.addln("  article {float:left;padding:0 20px 0 20px;margin-top:10px;width:auto;order:1;flex-grow:1;}");
+        htm.addln("  code {color:#0070C0;font-weight:700;}");
+        htm.addln("  th {text-align:left;background-color:#eee;}");
+        htm.addln("  td {vertical-align:top; padding:5px;}");
+        htm.addln("  .indent {margin-left:20px;}");
+        htm.addln("  .redhead {color:red;font-style:italic;margin-top:4px;margin-bottom:2px;}");
+        htm.addln("  p.innerhead {color:#006144;font-weight:700;margin-top:12px;margin-bottom:2px;}");
+        htm.addln("  .red {color:#B00;font-weight:700;}");
+        htm.addln("  .constraint {color:#D9782D;}");
+        htm.addln("  .thin {margin-top:3px;margin-bottom:3px;}");
+        htm.addln("  .vgap {min-height:15px;}");
+        htm.addln("  .hgap {display:inline-block;min-width:30px;}");
         htm.addln(" </style>");
         htm.addln("</head><body>");
     }
@@ -230,9 +220,84 @@ final class DocHandler {
      */
     private static void emitHeader(final HtmlBuilder htm) {
 
-        htm.sDiv(null, "style='background-color: #1E4D2B; margin:10px; padding:6px 20px 8px 20px;'");
+        htm.sDiv(null, "style='background-color: #1E4D2B; margin:0; padding:6px 20px 8px 20px;'");
         htm.sH(1).add("MathOps <strong>Persistence Layer</strong>").eH(1);
         htm.eDiv();
+    }
+
+    /**
+     * The main General index page.
+     *
+     * @param htm the {@code HtmlBuilder} to which to append
+     */
+    private void doGeneralIndex(final HtmlBuilder htm) {
+
+        htm.sDiv(null,"style='margin:10px 30px;max-width:800px;'");
+        htm.sH(2).add("System Documentation").eH(2);
+        htm.div("vgap");
+
+        htm.sDiv(null, "style='border-top:1px solid gray;border-bottom:1px solid gray;'");
+        htm.sP().add("""
+                This component of the MathOps system is designed to operate as a service on a database and/or file
+                servers, or as a front-end to a cluster of such servers.  It’s purpose is to present a secure and
+                flexible interface to the underlying data that insulates applications from implementation details
+                and allows changes in underlying storage architectures and products without changes to application
+                code or logic.""").eP();
+
+        htm.sP().add("""
+                The software is Java-based, and runs in a servlet engine such as Tomcat, Jetty, Glassfish, or Wildfly,
+                typically behind a front-end such as Apache HTTPD or Nginx that handles the HTTP protocol and TLS
+                encryption.""").eP();
+
+        htm.sP(null, " style='margin-bottom:3px;'")
+                .add("An typical installation of the Persistence Layer on a single server might include:").eP();
+
+        htm.addln("<ul style='margin-top:0;'>");
+        htm.addln("  <li>a database product such as PostgreSQL,</li>");
+        htm.addln("  <li>a web server such as Apache HTTPD,</li>");
+        htm.addln("  <li>a servlet container such as Tomcat, and</li>");
+        htm.addln("  <li>the MathOps persistence layer installed as a servlet.</li>");
+        htm.addln("</ul>");
+        htm.eDiv(); // top and bottom line border
+
+        htm.div("vgap");
+
+        htm.sDiv(null, "style='margin:0;background:#eee;border:1px solid gray;padding:0 20px 15px 20px;'");
+
+        htm.sH(3).add("Documentation Topics").eH(3);
+        htm.sDiv("indent");
+        
+        htm.sH(4).add("Generalized Database System").eH(4);
+        htm.sDiv("indent");
+        htm.sP("thin").add("<a href='/doc/general1.html'>Overview</a>").eP();
+        htm.sP("thin").add("<a href='/doc/general2.html'>Structures</a>").eP();
+        htm.sP("thin").add("<a href='/doc/general3.html'>Selecting</a>").eP();
+        htm.sP("thin").add("<a href='/doc/general4.html'>Updating</a>").eP();
+        htm.sP("thin").add("<a href='/doc/general5.html'>Implementations</a>").eP();
+        htm.sP("thin").add("<a href='/doc/general6.html'>API Encoding</a>").eP();
+        htm.sP("thin").add("<a href='/doc/general7.html'>API Endpoints</a>").eP();
+        htm.eDiv(); // indent
+
+        htm.sH(4).add("Schemas").eH(4);
+        htm.sDiv("indent");
+        htm.sP("thin").add("<a href='/doc/schema0.html'>Overview of Schemas</a>").eP();
+        htm.sP("thin").add("<a href='/doc/schema1.html'>MathOps Schema</a>").eP();
+        htm.sP("thin").add("<a href='/doc/schema2.html'>Main Schema</a>").eP();
+        htm.sP("thin").add("<a href='/doc/schema3.html'>External Data Schema</a>").eP();
+        htm.sP("thin").add("<a href='/doc/schema4.html'>Analytics Schema</a>").eP();
+        htm.sP("thin").add("<a href='/doc/schema5.html'>Term Schema</a>").eP();
+        htm.eDiv(); // indent
+
+        htm.sH(4).add("Installation and Operations").eH(4);
+        htm.sDiv("indent");
+        htm.sP("thin").add("<a href='/doc/installation.html'>Installation</a>").eP();
+        htm.sP("thin").add("<a href='/doc/configuration.html'>Configuration</a>").eP();
+        htm.sP("thin").add("<a href='/doc/operations.html'>Operations</a>").eP();
+        htm.eDiv(); // indent
+        
+        htm.eDiv(); // indent
+        htm.eDiv(); // box with sections
+        htm.eDiv(); // margins, max-width
     }
 
     /**
@@ -240,15 +305,16 @@ final class DocHandler {
      *
      * @param htm the {@code HtmlBuilder} to which to append
      */
-    private void doGeneral1(final HtmlBuilder htm) {
+    private void doGeneralDatabase(final HtmlBuilder htm) {
 
-        doGeneralNav(htm, GEN_OVERVIEW);
+        htm.sH(2).add("MathOps.Dev <strong>Generalized Database</strong> Overview").eH(2);
 
-        htm.sH(3).add("MathOps.Dev <strong>Generalized Database</strong>").eH(3);
+        htm.sP().add("MathOps is a Java-based system for course delivery and operation.").eP();
 
-        htm.sP().add("The MathOps system provides a generalized interface for data access that can use a variety of ",
-                "back-end products or persistence strategies, presented to applications as a <b>generalized ",
-                "database</b> with a flexible <b>API</b>.").eP();
+        htm.sP().add("""
+                The system provides a generalized interface for data access that can use a variety of back-end products
+                or persistence strategies, presented to applications as a <b>generalized persistence layer</b> with a
+                flexible <b>API</b>.""").eP();
 
         htm.sP().add("This is based on a set of generalized classes that represent:").eP();
         htm.addln("<ul>");
@@ -281,7 +347,7 @@ final class DocHandler {
      *
      * @param htm the {@code HtmlBuilder} to which to append
      */
-    private void doGeneral2(final HtmlBuilder htm) {
+    private void doGeneralStructures(final HtmlBuilder htm) {
 
         doGeneralNav(htm, GEN_STRUCTURES);
 
@@ -407,7 +473,7 @@ final class DocHandler {
      *
      * @param htm the {@code HtmlBuilder} to which to append
      */
-    private void doGeneral3(final HtmlBuilder htm) {
+    private void doGeneralSelectionCriteria(final HtmlBuilder htm) {
 
         doGeneralNav(htm, GEN_SELECTING);
 
@@ -544,7 +610,7 @@ final class DocHandler {
      *
      * @param htm the {@code HtmlBuilder} to which to append
      */
-    private void doGeneral4(final HtmlBuilder htm) {
+    private void doGeneralUpdatedValues(final HtmlBuilder htm) {
 
         doGeneralNav(htm, GEN_UPDATING);
 
@@ -568,7 +634,7 @@ final class DocHandler {
      *
      * @param htm the {@code HtmlBuilder} to which to append
      */
-    private void doGeneral5(final HtmlBuilder htm) {
+    private void doGeneralImplementations(final HtmlBuilder htm) {
 
         doGeneralNav(htm, GEN_IMPL);
 
@@ -612,7 +678,7 @@ final class DocHandler {
      *
      * @param htm the {@code HtmlBuilder} to which to append
      */
-    private void doGeneral6(final HtmlBuilder htm) {
+    private void doGeneralApiEncoding(final HtmlBuilder htm) {
 
         doGeneralNav(htm, GEN_ENCODING);
 
@@ -870,7 +936,7 @@ final class DocHandler {
      *
      * @param htm the {@code HtmlBuilder} to which to append
      */
-    private void doGeneral7(final HtmlBuilder htm) {
+    private void doGeneralApiEndpoints(final HtmlBuilder htm) {
 
         doGeneralNav(htm, GEN_ENDPOINTS);
 
