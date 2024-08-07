@@ -99,19 +99,4 @@ final class TestTermTable {
             assertEquals(-3, matchInt.intValue() , "Expected match integer to be -3");
         }
     }
-    /**
-     * Creates a {@code SelectionCriteria} object that matches on a specified active index.
-     *
-     * @param theActiveIndex the active index for which to query
-     * @return the selection criteria
-     */
-    public SelectionCriteria mkActiveIndexQuery(final int theActiveIndex) {
-
-        final Integer activeIndexObj = Integer.valueOf(theActiveIndex);
-
-        return new SelectionCriteria(this, new IntegerFieldCriterion(TermTable.F_ACTIVE_INDEX,
-                ENumericMatchType.EXACT_IN, activeIndexObj));
-    }
-
-
 }

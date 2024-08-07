@@ -7,13 +7,12 @@ import dev.mathops.persistence.Field;
 import dev.mathops.persistence.Table;
 import dev.mathops.persistence.constraint.AbstractFieldConstraint;
 import dev.mathops.schema.AllTables;
-import io.undertow.server.HttpHandler;
-import io.undertow.server.HttpServerExchange;
-import io.undertow.util.Headers;
-import io.undertow.util.HttpString;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Deque;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -21,10 +20,7 @@ import java.util.TreeMap;
 /**
  * A handler for Documentation requests.
  */
-public final class DocHandler implements HttpHandler {
-
-    /** A request method. */
-    private static final HttpString GET = new HttpString("GET");
+final class DocHandler {
 
     /** A common string. */
     private static final String A_CLASS_LIT2 = "<a class='lit2'";
@@ -94,80 +90,77 @@ public final class DocHandler implements HttpHandler {
     /**
      * Handles an HTTP exchange.
      *
-     * @param httpServerExchange the exchange
+     * @param reqPath the request path (including the prefix that selected this handler)
+     * @param req     the HTTP servlet request
+     * @param resp    the HTTP servlet response
+     * @throws IOException if there is an error writing the response
      */
-    @Override
-    public void handleRequest(final HttpServerExchange httpServerExchange) {
+    void handleRequest(final String reqPath, final HttpServletRequest req, final HttpServletResponse resp)
+            throws IOException {
 
-        if (httpServerExchange.isInIoThread()) {
-            httpServerExchange.dispatch(this);
-        } else {
-            final HttpString method = httpServerExchange.getRequestMethod();
+        final String method = req.getMethod();
 
-            if (GET.equals(method)) {
-                final String requestPath = httpServerExchange.getRequestPath();
-                final String path = requestPath.substring(this.prefixLength);
+        if ("GET".equalsIgnoreCase(method)) {
+            final String path = reqPath.substring(this.prefixLength);
 
 //                Log.info("GET Path is: ", path);
 
-                final HtmlBuilder htm = new HtmlBuilder(1000);
-                boolean found = true;
+            final HtmlBuilder htm = new HtmlBuilder(1000);
+            boolean found = true;
 
-                startPage(htm);
-                emitHeader(htm);
-                htm.sDiv(null, "style='padding-left:20px;'");
-                htm.sH(2).add("System Documentation").eH(2);
+            startPage(htm);
+            emitHeader(htm);
+            htm.sDiv(null, "style='padding-left:20px;'");
+            htm.sH(2).add("System Documentation").eH(2);
 
-                if (path.isEmpty() || "/".equals(path) || "/index.html".equals(path)) {
-                    doGeneral1(htm);
-                } else if ("/general2.html".equals(path)) {
-                    doGeneral2(htm);
-                } else if ("/general3.html".equals(path)) {
-                    doGeneral3(htm);
-                } else if ("/general4.html".equals(path)) {
-                    doGeneral4(htm);
-                } else if ("/general5.html".equals(path)) {
-                    doGeneral5(htm);
-                } else if ("/general6.html".equals(path)) {
-                    doGeneral6(htm);
-                } else if ("/general7.html".equals(path)) {
-                    doGeneral7(htm);
-                } else if ("/schemas.html".equals(path)) {
+            if (path.isEmpty() || "/".equals(path) || "/index.html".equals(path)) {
+                doGeneral1(htm);
+            } else if ("/general2.html".equals(path)) {
+                doGeneral2(htm);
+            } else if ("/general3.html".equals(path)) {
+                doGeneral3(htm);
+            } else if ("/general4.html".equals(path)) {
+                doGeneral4(htm);
+            } else if ("/general5.html".equals(path)) {
+                doGeneral5(htm);
+            } else if ("/general6.html".equals(path)) {
+                doGeneral6(htm);
+            } else if ("/general7.html".equals(path)) {
+                doGeneral7(htm);
+            } else if ("/schemas.html".equals(path)) {
+                doSchemas(htm);
+            } else if ("/schema.html".equals(path)) {
+
+                final Map<String, String[]> params = req.getParameterMap();
+                final String[] schemaList = params.get("schema");
+                if (schemaList == null || schemaList.length == 0) {
                     doSchemas(htm);
-                } else if ("/schema.html".equals(path)) {
-                    final Map<String, Deque<String>> params = httpServerExchange.getQueryParameters();
-                    final Deque<String> schemaList = params.get("schema");
-                    if (schemaList == null || schemaList.isEmpty()) {
-                        doSchemas(htm);
+                } else {
+                    final String schema = schemaList[0];
+                    final String[] tableList = params.get("table");
+                    if (tableList == null || tableList.length == 0) {
+                        doSchema(htm, schema, null);
                     } else {
-                        final String schema = schemaList.getFirst();
-                        final Deque<String> tableList = params.get("table");
-                        if (tableList == null || tableList.isEmpty()) {
-                            doSchema(htm, schema, null);
-                        } else {
-                            final String table = tableList.getFirst();
-                            doSchema(htm, schema, table);
-                        }
+                        final String table = tableList[0];
+                        doSchema(htm, schema, table);
                     }
-                } else {
-                    found = false;
-                }
-
-                if (found) {
-                    htm.eDiv();
-                    endPage(htm);
-
-                    httpServerExchange.getResponseHeaders().put(Headers.CONTENT_TYPE, "text/html");
-                    final String htmString = htm.toString();
-                    httpServerExchange.getResponseSender().send(htmString);
-                } else {
-                    httpServerExchange.setStatusCode(STATUS_NOT_FOUND);
                 }
             } else {
-                httpServerExchange.setStatusCode(STATUS_BAD_METHOD);
+                found = false;
             }
 
-            httpServerExchange.endExchange();
+            if (found) {
+                htm.eDiv();
+                endPage(htm);
+
+                final String htmString = htm.toString();
+                final byte[] bytes = htmString.getBytes(StandardCharsets.UTF_8);
+                ServiceSite.sendReply(req, resp, "text/html", bytes);
+            } else {
+                resp.sendError(HttpServletResponse.SC_NOT_FOUND);
+            }
+        } else {
+            resp.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
         }
     }
 
@@ -680,7 +673,7 @@ public final class DocHandler implements HttpHandler {
         htm.addln("  <li>An enumerated value (Tinyint) indicating the field type</li>");
         htm.addln("  <li>An enumerated value (Tinyint) indicating the field's role</li>");
         htm.addln("  <li>The number (<code>M</code>) of constraints associated with the field, as an integer " +
-                "(Tinyint, Byte, or Short)</li>");
+                  "(Tinyint, Byte, or Short)</li>");
         htm.addln("  <li><code>M</code> repetitions of constraint definitions:</li>");
         htm.addln("    <ul>");
         htm.addln("    <li>If type is STRING_ENUMERATED, the number (<code>P</code>) of enumerated values as an ",
@@ -694,7 +687,7 @@ public final class DocHandler implements HttpHandler {
                 "Integer) followed by the maximum value as an integer (Tinyint, Byte, Short, or Integer).</li>");
         htm.addln("    <li>If type is LONG_RANGE, the minimum value as a long integer (Tinyint, Byte, Short, or ",
                 "Integer, or Long) followed by the maximum value as an integer (Tinyint, Byte, Short, Integer, or " +
-                        "Long).</li>");
+                "Long).</li>");
         htm.addln("    <li>If type is FLOAT_RANGE, the minimum value as a Float followed by the maximum value as a ",
                 "Float.</li>");
         htm.addln("    <li>If type is DOUBLE_RANGE, the minimum value as a Double followed by the maximum value as a ",
@@ -944,7 +937,7 @@ public final class DocHandler implements HttpHandler {
         htm.sP("thin").add("<code>GET all_tables</code>").eP();
         htm.sDiv("indent");
         htm.sP("thin").add("Retrieves the set of defined tables and their fields and constraints.  If a schema ID is " +
-                "provided, only the tables in that schema are returned.").eP();
+                           "provided, only the tables in that schema are returned.").eP();
         htm.sP("redhead").add("Request body:").eP();
         htm.addln("<ul class='thin'>");
         htm.addln("<li>16-byte authorization token</li>");
@@ -1063,7 +1056,7 @@ public final class DocHandler implements HttpHandler {
         htm.sP("thin").add("<code>POST insert</code>").eP();
         htm.sDiv("indent");
         htm.sP("thin").add("Inserts one or more rows into a specified table.  All rows will be inserted if " +
-                "successful; none will be inserted on failure.").eP();
+                           "successful; none will be inserted on failure.").eP();
         htm.sP("redhead").add("Request body:").eP();
         htm.addln("<ul class='thin'>");
         htm.addln("<li>16-byte authorization token</li>");
@@ -1092,7 +1085,7 @@ public final class DocHandler implements HttpHandler {
         htm.sP("thin").add("<code>POST insert_multi</code>").eP();
         htm.sDiv("indent");
         htm.sP("thin").add("Inserts one or more rows into each of a set of specified tables.  All rows will be " +
-                "inserted if successful; none will be inserted on failure.").eP();
+                           "inserted if successful; none will be inserted on failure.").eP();
         htm.sP("redhead").add("Request body:").eP();
         htm.addln("<ul class='thin'>");
         htm.addln("<li>16-byte authorization token</li>");
@@ -1293,7 +1286,7 @@ public final class DocHandler implements HttpHandler {
                     "including the Persistence Layer. Tables in this schema are updated by administrative tools.").eP();
 
             htm.sP().add("The <code>persistence</code> table group stores configuration data for the MathOps " +
-                            "Persistence ",
+                         "Persistence ",
                     "Layer. It includes:").eP();
             htm.addln("<ul>");
             htm.addln("<li>A list of all defined schemas, including the <code>mathops</code> schema.</li>");

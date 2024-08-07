@@ -1,6 +1,7 @@
 package dev.mathops.persistence.site;
 
 import dev.mathops.commons.file.FileLoader;
+import dev.mathops.commons.log.Log;
 
 import java.io.File;
 import java.net.Inet4Address;
@@ -45,9 +46,11 @@ public final class Administrators {
         this.records = new ArrayList<>(20);
 
         final File admininstratorsFile = new File(configDir, "administrators.cfg");
-        final String[] administratorsLines = FileLoader.loadFileAsLines(admininstratorsFile, true);
+        final String[] administratorsLines = FileLoader.loadFileAsLines(admininstratorsFile, false);
 
-        if (administratorsLines != null) {
+        if (administratorsLines == null) {
+            Log.warning("Unable to read 'administrators.cfg' - remote administration locked out");
+        } else {
             for (final String line : administratorsLines) {
                 final AdminRecord record = parse(line);
                 if (record != null) {
@@ -65,7 +68,8 @@ public final class Administrators {
      */
     private AdminRecord parse(final String line) {
 
-
+        // TODO:
+        return null;
     }
 
     /**

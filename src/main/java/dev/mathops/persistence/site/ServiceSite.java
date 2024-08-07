@@ -15,6 +15,7 @@ import jakarta.servlet.http.HttpServletResponse;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.security.NoSuchAlgorithmException;
 
 /**
@@ -61,12 +62,17 @@ public final class ServiceSite extends HttpServlet {
     /** The session manager. */
     private SessionManager sessionMgr = null;
 
+    /** The handler for documentation requests. */
+    private final DocHandler docHandler;
+
     /**
      * Constructs a new {@code ServiceSite}.
      */
-    private ServiceSite() {
+    public ServiceSite() { // Public so Tomcat can instantiate
 
         super();
+
+        this.docHandler = new DocHandler(DOC_PREFIX.length());
     }
 
     /**
@@ -167,13 +173,8 @@ public final class ServiceSite extends HttpServlet {
                 if (req.isSecure()) {
                     serviceSecure(requestPath, req, resp);
                 } else {
-                    final String reqScheme = req.getScheme();
-                    if ("http".equals(reqScheme)) {
-                        serviceInsecure(requestPath, req, resp);
-                    } else {
-                        Log.warning("Invalid scheme: ", reqScheme);
-                        resp.sendError(HttpServletResponse.SC_NOT_FOUND);
-                    }
+                    // Refuse to serve anything that is not secure (httpd front-end should ensure this)
+                    resp.sendError(HttpServletResponse.SC_NOT_FOUND);
                 }
             } finally {
                 LogBase.setHostPath(null, null, null);
@@ -192,7 +193,7 @@ public final class ServiceSite extends HttpServlet {
      * @param req the servlet request
      * @return the host
      */
-    public static String getHost(final ServletRequest req) {
+    private static String getHost(final ServletRequest req) {
 
         final String server = req.getServerName();
         final String host;
@@ -239,7 +240,7 @@ public final class ServiceSite extends HttpServlet {
      * @param req the servlet request
      * @return the path
      */
-    public static String getPath(final HttpServletRequest req) {
+    private static String getPath(final HttpServletRequest req) {
 
         final String sPath = req.getServletPath();
         final String iPath = req.getPathInfo();
@@ -264,24 +265,37 @@ public final class ServiceSite extends HttpServlet {
 
         Log.info("Servicing secure request: " + requestPath);
 
-        resp.sendError(HttpServletResponse.SC_NOT_FOUND);
+        if (requestPath.startsWith(DOC_PREFIX)) {
+            this.docHandler.handleRequest(requestPath, req, resp);
+        } else {
+            resp.sendError(HttpServletResponse.SC_NOT_FOUND);
+        }
     }
 
     /**
-     * Processes a request when it is known the connection is not secure. The first part of the request path is used to
-     * determine whether the request is for a public file, or if not, to determine the mid-controller to which to
-     * forward the request.
+     * Sends a response with a particular content type and content.
      *
-     * @param requestPath the request path
-     * @param req         the HTTP servlet request
-     * @param resp        the HTTP servlet response
-     * @throws IOException if there is an error writing the response
+     * @param req         the request
+     * @param resp        the response
+     * @param contentType the content type
+     * @param reply       the reply content
+     * @throws IOException if there was an exception writing the response
      */
-    private void serviceInsecure(final String requestPath, final HttpServletRequest req,
-                                 final HttpServletResponse resp) throws IOException {
+    static void sendReply(final ServletRequest req, final HttpServletResponse resp, final String contentType,
+                          final byte[] reply) throws IOException {
 
-        Log.info("Servicing insecure request: " + requestPath);
+        resp.setContentType(contentType);
+        resp.setCharacterEncoding("UTF-8");
+        resp.setContentLength(reply.length);
+        resp.setHeader("Accept-Ranges", "bytes");
+        resp.setLocale(req.getLocale());
 
-        resp.sendError(HttpServletResponse.SC_NOT_FOUND);
+        try (final OutputStream out = resp.getOutputStream()) {
+            out.write(reply);
+        } catch (final IOException ex) {
+            if (!"ClientAbortException".equals(ex.getClass().getSimpleName())) {
+                throw ex;
+            }
+        }
     }
 }
