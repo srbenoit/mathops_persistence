@@ -35,7 +35,7 @@ import java.util.zip.ZipEntry;
 final class ServletWarBuilder {
 
     /** The directory in which to store the generated jar file. */
-    private static final String JARS_DIR = "jars";
+    private static final String LIB_DIR = "lib";
 
     /** Directory where project is stored. */
     private final File projectDir;
@@ -71,12 +71,12 @@ final class ServletWarBuilder {
         final File pesistenceClasses = new File(root, "dev/mathops/persistence");
         final File schemaClasses = new File(root, "dev/mathops/schema");
 
-        final File jars = new File(this.projectDir, "jars");
+        final File lib = new File(this.projectDir, "lib");
 
-        boolean success = checkDirectoriesExist(pesistenceClasses, schemaClasses, jars);
+        boolean success = checkDirectoriesExist(pesistenceClasses, schemaClasses, lib);
 
         if (success) {
-            try (final FileOutputStream out = new FileOutputStream(new File(jars, "ROOT.jar"));
+            try (final FileOutputStream out = new FileOutputStream(new File(lib, "ROOT.jar"));
                  final BufferedOutputStream bos = new BufferedOutputStream(out, 128 << 10);
                  final JarOutputStream jar = new JarOutputStream(bos)) {
 
@@ -102,7 +102,7 @@ final class ServletWarBuilder {
     private void buildRootWar() {
 
         final File webRoot = new File(this.projectDir, "build/classes/java/main");
-        final File deployDir = new File(this.projectDir, JARS_DIR);
+        final File deployDir = new File(this.projectDir, LIB_DIR);
 
         try (final FileOutputStream out = new FileOutputStream(new File(deployDir, "ROOT.war"));
              final BufferedOutputStream bos = new BufferedOutputStream(out, 128 << 10);
