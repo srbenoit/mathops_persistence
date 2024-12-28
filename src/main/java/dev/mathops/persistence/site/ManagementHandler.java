@@ -6,18 +6,12 @@ import dev.mathops.persistence.site.session.Login;
 import dev.mathops.persistence.site.session.LoginResult;
 import dev.mathops.persistence.site.session.Session;
 import dev.mathops.persistence.site.session.SessionManager;
-import io.undertow.server.BlockingHttpExchange;
-import io.undertow.server.HttpHandler;
-import io.undertow.server.HttpServerExchange;
-import io.undertow.util.Headers;
-import io.undertow.util.HttpString;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.util.Deque;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -25,22 +19,7 @@ import java.util.Map;
 /**
  * A handler for Management requests.
  */
-public final class ManagementHandler implements HttpHandler {
-
-    /** A request method. */
-    private static final HttpString GET = new HttpString("GET");
-
-    /** A request method. */
-    private static final HttpString POST = new HttpString("POST");
-
-    /** An HTTP status code. */
-    private static final int STATUS_BAD_METHOD = 405;
-
-    /** An HTTP status code. */
-    private static final int STATUS_NOT_FOUND = 404;
-
-    /** An HTTP status code. */
-    private static final int STATUS_MOVED_PERMANENTLY = 301;
+ final class ManagementHandler {
 
     /** The number of characters of URI path used to select this handler. */
     private final int prefixLength;
@@ -68,79 +47,53 @@ public final class ManagementHandler implements HttpHandler {
     /**
      * Handles an HTTP exchange.
      *
-     * @param exchange the exchange
+     * @param reqPath the request path (including the prefix that selected this handler)
+     * @param req     the HTTP servlet request
+     * @param resp    the HTTP servlet response
+     * @throws IOException if there is an error reading the request body or writing the response
      */
-    @Override
-    public void handleRequest(final HttpServerExchange exchange) throws Exception {
+    void handleRequest(final String reqPath, final HttpServletRequest req, final HttpServletResponse resp)
+            throws IOException {
 
-        if (exchange.isInIoThread()) {
-            exchange.dispatch(this);
-        } else {
-            final HttpString method = exchange.getRequestMethod();
+        final String method = req.getMethod();
 
-            if (GET.equals(method)) {
-                handleGet(exchange);
-            } else if (POST.equals(method)) {
-                handlePost(exchange);
+        if ("GET".equalsIgnoreCase(method)) {
+            final String path = reqPath.substring(this.prefixLength);
+
+            Log.info("GET Path is: ", path);
+
+            if ("/login.html".equals(path)) {
+                doLoginGet(req, resp);
+            } else if ("/secure.html".equals(path)) {
+                doSecureGet(req, resp);
             } else {
-                exchange.setStatusCode(STATUS_BAD_METHOD);
+                resp.sendError(HttpServletResponse.SC_NOT_FOUND);
             }
+        } else if ("POST".equalsIgnoreCase(method)) {
+            final String path = reqPath.substring(this.prefixLength);
 
-            exchange.endExchange();
-        }
-    }
+            Log.info("POST Path is: ", path);
 
-    /**
-     * Handles a GET request.
-     *
-     * @param exchange the exchange containing the request from the client and used to send the response
-     * @throws IOException if there is an error reading the request body or writing the response
-     */
-    private void handleGet(final HttpServerExchange exchange) throws Exception {
-
-        final String requestPath = exchange.getRequestPath();
-        final String subpath = requestPath.substring(this.prefixLength);
-
-        Log.info("GET Path is: ", subpath);
-
-        if ("/login.html".equals(subpath)) {
-            doLoginGet(exchange);
-        } else if ("/secure.html".equals(subpath)) {
-            doSecureGet(exchange);
+            if ("/login.html".equals(path)) {
+                doLoginPost(req, resp);
+            } else if ("/create_admin_login.html".equals(path)) {
+                doCreateAdminLoginPost(req, resp);
+            } else {
+                resp.sendError(HttpServletResponse.SC_NOT_FOUND);
+            }
         } else {
-            exchange.setStatusCode(STATUS_NOT_FOUND);
-        }
-    }
-
-    /**
-     * Handles a POST request.
-     *
-     * @param exchange the exchange containing the request from the client and used to send the response
-     * @throws IOException if there is an error reading the request body or writing the response
-     */
-    private void handlePost(final HttpServerExchange exchange) throws Exception {
-
-        final String requestPath = exchange.getRequestPath();
-        final String subpath = requestPath.substring(this.prefixLength);
-
-        Log.info("POST Path is: ", subpath);
-
-        if ("/login.html".equals(subpath)) {
-            doLoginPost(exchange);
-        } else if ("/create_admin_login.html".equals(subpath)) {
-            doCreateAdminLoginPost(exchange);
-        } else {
-            exchange.setStatusCode(STATUS_NOT_FOUND);
+            resp.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
         }
     }
 
     /**
      * Generates the login page.
      *
-     * @param exchange the exchange containing the request from the client and used to send the response
+     * @param req  the HTTP servlet request
+     * @param resp the HTTP servlet response
      * @throws IOException if there is an error reading the request body or writing the response
      */
-    private void doLoginGet(final HttpServerExchange exchange) throws IOException {
+    private void doLoginGet(final HttpServletRequest req, final HttpServletResponse resp) throws IOException {
 
         final HtmlBuilder htm = new HtmlBuilder(200);
 
@@ -168,9 +121,9 @@ public final class ManagementHandler implements HttpHandler {
 
         endPage(htm);
 
-        exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, "text/html");
-        final String htmString = htm.toString();
-        exchange.getResponseSender().send(htmString);
+        final String str = htm.toString();
+
+        ServiceSite.sendReply(req, resp, "text/html", str);
     }
 
     /**
@@ -188,12 +141,13 @@ public final class ManagementHandler implements HttpHandler {
      * ]
      * </pre>
      *
-     * @param exchange the exchange containing the request from the client and used to send the response
+     * @param req  the HTTP servlet request
+     * @param resp the HTTP servlet response
      * @throws IOException if there is an error reading the request body or writing the response
      */
-    private void doLoginPost(final HttpServerExchange exchange) throws IOException {
+    private void doLoginPost(final HttpServletRequest req, final HttpServletResponse resp) throws IOException {
 
-        final byte[] requestBody = getRequestBody(exchange);
+        final byte[] requestBody = ServiceSite.getRequestBody(req);
         final Map<String, String> params = extractParameters(requestBody);
 
         final String username = params.get("u");
@@ -213,13 +167,12 @@ public final class ManagementHandler implements HttpHandler {
             emitLoginForm(htm, error);
             endPage(htm);
 
-            exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, "text/html");
-            final String htmString = htm.toString();
-            exchange.getResponseSender().send(htmString);
+            final String str = htm.toString();
+            ServiceSite.sendReply(req, resp, "text/html", str);
         } else {
             final String sid = session.getId();
-            exchange.setStatusCode(STATUS_MOVED_PERMANENTLY);
-            exchange.getResponseHeaders().put(new HttpString("Location"), "secure.html?sid=" + sid);
+            resp.setHeader("Location", "secure.html?sid=" + sid);
+            resp.sendError(HttpServletResponse.SC_MOVED_PERMANENTLY);
         }
     }
 
@@ -238,10 +191,12 @@ public final class ManagementHandler implements HttpHandler {
      * ]
      * </pre>
      *
-     * @param exchange the exchange containing the request from the client and used to send the response
+     * @param req  the HTTP servlet request
+     * @param resp the HTTP servlet response
      * @throws IOException if there is an error reading the request body or writing the response
      */
-    private void doCreateAdminLoginPost(final HttpServerExchange exchange) throws Exception {
+    private void doCreateAdminLoginPost(final HttpServletRequest req, final HttpServletResponse resp)
+            throws IOException {
 
         final HtmlBuilder htm = new HtmlBuilder(200);
 
@@ -251,7 +206,7 @@ public final class ManagementHandler implements HttpHandler {
         if (this.sessionMgr.isValid()) {
             emitLoginForm(htm, null);
         } else {
-            final byte[] requestBody = getRequestBody(exchange);
+            final byte[] requestBody = ServiceSite.getRequestBody(req);
             final Map<String, String> params = extractParameters(requestBody);
 
             final String u = params.get("u");
@@ -278,46 +233,50 @@ public final class ManagementHandler implements HttpHandler {
 
         endPage(htm);
 
-        exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, "text/html");
-        final String htmString = htm.toString();
-        exchange.getResponseSender().send(htmString);
+        final String str = htm.toString();
+        ServiceSite.sendReply(req, resp, "text/html", str);
     }
 
     /**
      * Generates the secure page.
      *
-     * @param exchange the exchange containing the request from the client and used to send the response
+     * @param req  the HTTP servlet request
+     * @param resp the HTTP servlet response
+     * @throws IOException if there is an error reading the request body or writing the response
      */
-    private void doSecureGet(final HttpServerExchange exchange) {
+    private void doSecureGet(final HttpServletRequest req, final HttpServletResponse resp) throws IOException {
 
         if (this.sessionMgr.isValid()) {
-            final Map<String, Deque<String>> params = exchange.getQueryParameters();
-            final Deque<String> sid = params.get("sid");
+            final Map<String, String[]> params = req.getParameterMap();
+            final String[] sid = params.get("sid");
 
-            if (sid == null) {
-                exchange.setStatusCode(STATUS_MOVED_PERMANENTLY);
-                exchange.getResponseHeaders().put(new HttpString("Location"), "login.html");
+            if (sid == null || sid.length == 0) {
+                resp.setHeader("Location", "login.html");
+                resp.sendError(HttpServletResponse.SC_MOVED_PERMANENTLY);
             } else {
-                final String sessionId = sid.getFirst();
+                final String sessionId = sid[0];
                 final Session session = this.sessionMgr.getSession(sessionId);
                 if (session == null) {
-                    exchange.setStatusCode(STATUS_MOVED_PERMANENTLY);
-                    exchange.getResponseHeaders().put(new HttpString("Location"), "login.html");
-                } else{
-                    generateSecurePage(exchange, session);
+                    resp.setHeader("Location", "login.html");
+                    resp.sendError(HttpServletResponse.SC_MOVED_PERMANENTLY);
+                } else {
+                    generateSecurePage(req, resp, session);
                 }
             }
         } else {
-            exchange.setStatusCode(STATUS_NOT_FOUND);
+            resp.sendError(HttpServletResponse.SC_NOT_FOUND);
         }
     }
 
     /**
      * Generates the secure page.
      *
-     * @param exchange the exchange containing the request from the client and used to send the response
+     * @param req  the HTTP servlet request
+     * @param resp the HTTP servlet response
+     * @throws IOException if there is an error reading the request body or writing the response
      */
-    private void generateSecurePage(final HttpServerExchange exchange, final Session session) {
+    private void generateSecurePage(final HttpServletRequest req, final HttpServletResponse resp,
+                                    final Session session) throws IOException {
 
         final HtmlBuilder htm = new HtmlBuilder(200);
 
@@ -330,33 +289,8 @@ public final class ManagementHandler implements HttpHandler {
 
         endPage(htm);
 
-        exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, "text/html");
-        final String htmString = htm.toString();
-        exchange.getResponseSender().send(htmString);
-    }
-
-    /**
-     * Reads the request body from an HTTP exchange.
-     *
-     * @param exchange the exchange containing the request from the client and used to send the response
-     * @return the request body
-     * @throws IOException if there is an error reading the request body or writing the response
-     */
-    private static byte[] getRequestBody(final HttpServerExchange exchange) throws IOException {
-
-        try (final BlockingHttpExchange blocking = exchange.startBlocking()) {
-            final InputStream is = exchange.getInputStream();
-
-            final ByteArrayOutputStream baos = new ByteArrayOutputStream(100);
-            final byte[] buffer = new byte[100];
-            int numRead = is.read(buffer);
-            while (numRead > 0) {
-                baos.write(buffer, 0, numRead);
-                numRead = is.read(buffer);
-            }
-
-            return baos.toByteArray();
-        }
+        final String str = htm.toString();
+        ServiceSite.sendReply(req, resp, "text/html", str);
     }
 
     /**
@@ -399,7 +333,8 @@ public final class ManagementHandler implements HttpHandler {
         htm.addln("  h1 { color:white; margin:0; font-size:34pt; font-weight:100; font-stretch:condensed; }");
         htm.addln("  h1 strong { font-weight:700; color:#C8C372; }");
         htm.addln("  input { font-size:16pt; font-stretch:condensed; margin-bottom:6pt; }");
-        htm.addln("  label.right { display:inline-block; width:200pt; text-align:right; color:#1E4D2B; font-size:16pt;}");
+        htm.addln("  label.right { display:inline-block; width:200pt; text-align:right; color:#1E4D2B; " +
+                  "font-size:16pt;}");
         htm.addln(" </style>");
         htm.addln("</head><body>");
     }
@@ -429,7 +364,7 @@ public final class ManagementHandler implements HttpHandler {
     /**
      * Emits the form to log in.
      *
-     * @param htm the {@code HtmlBuilder} to which to append
+     * @param htm          the {@code HtmlBuilder} to which to append
      * @param errorMessage an error message ({@code null} if none)
      */
     private void emitLoginForm(final HtmlBuilder htm, final String errorMessage) {
@@ -452,7 +387,7 @@ public final class ManagementHandler implements HttpHandler {
     /**
      * Emits the form to configure the administrator username and password.
      *
-     * @param htm the {@code HtmlBuilder} to which to append
+     * @param htm          the {@code HtmlBuilder} to which to append
      * @param errorMessage an error message ({@code null} if none)
      */
     private void emitCreateAdminForm(final HtmlBuilder htm, final String errorMessage) {

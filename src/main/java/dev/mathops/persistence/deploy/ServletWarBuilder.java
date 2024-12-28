@@ -68,12 +68,12 @@ final class ServletWarBuilder {
      */
     private boolean buildRootJar() {
         final File root = new File(this.projectDir, "build/classes/java/main");
-        final File pesistenceClasses = new File(root, "dev/mathops/persistence");
+        final File persistenceClasses = new File(root, "dev/mathops/persistence");
         final File schemaClasses = new File(root, "dev/mathops/schema");
 
         final File lib = new File(this.projectDir, "lib");
 
-        boolean success = checkDirectoriesExist(pesistenceClasses, schemaClasses, lib);
+        boolean success = checkDirectoriesExist(persistenceClasses, schemaClasses, lib);
 
         if (success) {
             try (final FileOutputStream out = new FileOutputStream(new File(lib, "ROOT.jar"));
@@ -83,7 +83,7 @@ final class ServletWarBuilder {
                 addManifest(jar);
 
                 Log.finest(Res.fmt(Res.ADDING_FILES, this.projectDir), CoreConstants.CRLF);
-                addFiles(root, pesistenceClasses, jar);
+                addFiles(root, persistenceClasses, jar);
                 addFiles(root, schemaClasses, jar);
                 jar.finish();
                 Log.finest(Res.fmt(Res.JAR_DONE, "ROOT"), CoreConstants.CRLF);
@@ -139,7 +139,9 @@ final class ServletWarBuilder {
             war.putNextEntry(new ZipEntry("WEB-INF/classes/date.txt"));
             war.write(now.getBytes(StandardCharsets.UTF_8));
             war.closeEntry();
-            Log.finest(Res.fmt(Res.WAR_DONE, "ROOT"), CoreConstants.CRLF);
+
+            final String deployPath = deployDir.getAbsolutePath();
+            Log.finest(Res.fmt(Res.WAR_DONE, "ROOT"), " in ", deployPath, CoreConstants.CRLF);
 
         } catch (final IOException ex) {
             Log.warning(Res.get(Res.WAR_WRITE_FAILED), ex);

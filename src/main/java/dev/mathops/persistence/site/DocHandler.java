@@ -1219,7 +1219,7 @@ final class DocHandler {
         htm.addln("<li>The table ID as an integer (Tinyint, Byte, Short, or Integer)</li>");
         htm.addln("<li>[OPTIONAL] Selection Criteria Encoding (see above – if omitted, all records match)</li>");
         htm.addln("<li>Updated Values Encoding (see above)</li>");
-        htm.eDiv();
+        htm.addln("</ul>");
         htm.sP("redhead").add("Response body:").eP();
         htm.addln("<ul class='thin'>");
         htm.addln("<li>Enumerated result code {SUCCESS | FAILURE} (Tinyint, Byte or Short)</li>");
@@ -1248,7 +1248,6 @@ final class DocHandler {
         htm.sP("thin").add("The client begins by sending a client_first message, to which the server responds with a ",
                 "server_first message. The client then sends a client_final message, to which the server responds ",
                 "with a server_final message.").eP();
-
         htm.eDiv();
     }
 

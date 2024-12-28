@@ -18,9 +18,9 @@ repositories {
 dependencies {
     implementation("com.ibm.informix:jdbc:4.50.11")
     implementation("com.oracle.database.jdbc:ojdbc11:23.4.0.24.05")
-    implementation("io.undertow:undertow-core:2.3.15.Final")
-    implementation("io.undertow:undertow-servlet:2.3.15.Final")
-    implementation("io.undertow:undertow-websockets-jsr:2.3.15.Final")
+    implementation("org.postgresql:postgresql:42.7.3")
+
+    compileOnly("jakarta.servlet:jakarta.servlet-api:6.1.0")
 
     implementation(files("lib/mathops_commons.jar"))
 

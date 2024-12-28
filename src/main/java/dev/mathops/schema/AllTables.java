@@ -21,7 +21,6 @@ import dev.mathops.schema.mathops.StringEnumeratedConstraintTable;
 import dev.mathops.schema.mathops.StringLengthConstraintTable;
 import dev.mathops.schema.mathops.TableTable;
 import dev.mathops.schema.term.TermWeekTable;
-import io.undertow.util.ByteRange;
 
 import java.util.ArrayList;
 import java.util.List;

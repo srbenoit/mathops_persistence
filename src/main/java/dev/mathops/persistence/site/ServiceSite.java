@@ -8,15 +8,19 @@ import dev.mathops.persistence.site.session.SessionManager;
 import jakarta.servlet.ServletConfig;
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.ServletInputStream;
 import jakarta.servlet.ServletRequest;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 import java.security.NoSuchAlgorithmException;
+import java.util.Locale;
 
 /**
  * A servlet the provides the data access API as well as a website with documentation and administrative functions.
@@ -62,8 +66,14 @@ public final class ServiceSite extends HttpServlet {
     /** The session manager. */
     private SessionManager sessionMgr = null;
 
+    /** The handler for API requests. */
+    private ApiHandler apiHandler = null;
+
+    /** The handler for management requests. */
+    private ManagementHandler mgtHandler = null;
+
     /** The handler for documentation requests. */
-    private final DocHandler docHandler;
+    private DocHandler docHandler = null;
 
     /**
      * Constructs a new {@code ServiceSite}.
@@ -71,8 +81,6 @@ public final class ServiceSite extends HttpServlet {
     public ServiceSite() { // Public so Tomcat can instantiate
 
         super();
-
-        this.docHandler = new DocHandler(DOC_PREFIX.length());
     }
 
     /**
@@ -100,6 +108,15 @@ public final class ServiceSite extends HttpServlet {
         } catch (final NoSuchAlgorithmException ex) {
             throw new ServletException(ex);
         }
+
+        final int apiPrefixLen = API_PREFIX.length();
+        this.apiHandler = new ApiHandler(apiPrefixLen, this.configDir, this.sessionMgr);
+
+        final int mgtPrefixLen = MGT_PREFIX.length();
+        this.mgtHandler = new ManagementHandler(mgtPrefixLen, this.configDir, this.sessionMgr);
+
+        final int docPrefixLen = DOC_PREFIX.length();
+        this.docHandler = new DocHandler(docPrefixLen);
 
         Log.info(TITLE, " initialized");
     }
@@ -173,7 +190,7 @@ public final class ServiceSite extends HttpServlet {
                 if (req.isSecure()) {
                     serviceSecure(requestPath, req, resp);
                 } else {
-                    // Refuse to serve anything that is not secure (httpd front-end should ensure this)
+                    // Refuse to serve anything that is not secure (http front-end should ensure this)
                     resp.sendError(HttpServletResponse.SC_NOT_FOUND);
                 }
             } finally {
@@ -204,9 +221,11 @@ public final class ServiceSite extends HttpServlet {
         } else {
             final String name = server.substring(0, firstDot);
             if (name.endsWith("dev")) {
-                host = name.substring(0, name.length() - 3) + server.substring(firstDot);
+                final int nameLen = name.length();
+                host = name.substring(0, nameLen - 3) + server.substring(firstDot);
             } else if (name.endsWith("test")) {
-                host = name.substring(0, name.length() - 4) + server.substring(firstDot);
+                final int nameLen = name.length();
+                host = name.substring(0, nameLen - 4) + server.substring(firstDot);
             } else {
                 host = server;
             }
@@ -263,12 +282,39 @@ public final class ServiceSite extends HttpServlet {
     private void serviceSecure(final String requestPath, final HttpServletRequest req,
                                final HttpServletResponse resp) throws IOException {
 
-        Log.info("Servicing secure request: " + requestPath);
+        Log.info("Servicing secure request: ", requestPath);
 
-        if (requestPath.startsWith(DOC_PREFIX)) {
+        if (requestPath.startsWith(API_PREFIX)) {
+            this.apiHandler.handleRequest(requestPath, req, resp);
+        } else if (requestPath.startsWith(MGT_PREFIX)) {
+            this.mgtHandler.handleRequest(requestPath, req, resp);
+        } else if (requestPath.startsWith(DOC_PREFIX)) {
             this.docHandler.handleRequest(requestPath, req, resp);
         } else {
             resp.sendError(HttpServletResponse.SC_NOT_FOUND);
+        }
+    }
+
+    /**
+     * Reads the request body from an HTTP request.
+     *
+     * @param req the HTTP servlet request
+     * @return the request body
+     * @throws IOException if there is an error reading the request body or writing the response
+     */
+    public static byte[] getRequestBody(final ServletRequest req) throws IOException {
+
+        try (final ServletInputStream in = req.getInputStream()) {
+
+            final ByteArrayOutputStream baos = new ByteArrayOutputStream(100);
+            final byte[] buffer = new byte[100];
+            int numRead = in.read(buffer);
+            while (numRead > 0) {
+                baos.write(buffer, 0, numRead);
+                numRead = in.read(buffer);
+            }
+
+            return baos.toByteArray();
         }
     }
 
@@ -282,18 +328,37 @@ public final class ServiceSite extends HttpServlet {
      * @throws IOException if there was an exception writing the response
      */
     static void sendReply(final ServletRequest req, final HttpServletResponse resp, final String contentType,
-                          final byte[] reply) throws IOException {
+                          final String reply) throws IOException {
+
+        final byte[] bytes = reply.getBytes(StandardCharsets.UTF_8);
+        sendReply(req, resp, contentType, bytes);
+    }
+
+    /**
+     * Sends a response with a particular content type and content.
+     *
+     * @param req         the request
+     * @param resp        the response
+     * @param contentType the content type
+     * @param reply       the reply content
+     * @throws IOException if there was an exception writing the response
+     */
+    public static void sendReply(final ServletRequest req, final HttpServletResponse resp, final String contentType,
+                                 final byte[] reply) throws IOException {
 
         resp.setContentType(contentType);
         resp.setCharacterEncoding("UTF-8");
         resp.setContentLength(reply.length);
         resp.setHeader("Accept-Ranges", "bytes");
-        resp.setLocale(req.getLocale());
+
+        final Locale locale = req.getLocale();
+        resp.setLocale(locale);
 
         try (final OutputStream out = resp.getOutputStream()) {
             out.write(reply);
         } catch (final IOException ex) {
-            if (!"ClientAbortException".equals(ex.getClass().getSimpleName())) {
+            final String clssName = ex.getClass().getSimpleName();
+            if (!"ClientAbortException".equals(clssName)) {
                 throw ex;
             }
         }
