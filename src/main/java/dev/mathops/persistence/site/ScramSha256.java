@@ -65,6 +65,7 @@ public enum ScramSha256 {
                     && ((int) body[4] == (int) '=')) {
 
                     //TODO:
+                    replyBody = "";
                 } else {
                     replyBody = "e=other-error";
                 }
@@ -74,6 +75,7 @@ public enum ScramSha256 {
                     && ((int) body[4] == (int) '=')) {
 
                     //TODO:
+                    replyBody = "";
                 } else {
                     replyBody = "e=other-error";
                 }
