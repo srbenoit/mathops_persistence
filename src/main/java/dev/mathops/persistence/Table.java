@@ -1,6 +1,6 @@
 package dev.mathops.persistence;
 
-import dev.mathops.commons.builder.SimpleBuilder;
+import dev.mathops.text.builder.SimpleBuilder;
 
 import java.util.Arrays;
 

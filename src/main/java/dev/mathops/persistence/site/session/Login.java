@@ -1,7 +1,7 @@
 package dev.mathops.persistence.site.session;
 
-import dev.mathops.commons.builder.SimpleBuilder;
-import dev.mathops.commons.parser.HexEncoder;
+import dev.mathops.commons.HexEncoder;
+import dev.mathops.text.builder.SimpleBuilder;
 
 import java.util.ArrayList;
 import java.util.List;

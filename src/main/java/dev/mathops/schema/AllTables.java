@@ -1,6 +1,5 @@
 package dev.mathops.schema;
 
-import dev.mathops.commons.builder.SimpleBuilder;
 import dev.mathops.persistence.Table;
 import dev.mathops.schema.main.HoldTypeTable;
 import dev.mathops.schema.main.LocalLoginTable;
@@ -21,6 +20,7 @@ import dev.mathops.schema.mathops.StringEnumeratedConstraintTable;
 import dev.mathops.schema.mathops.StringLengthConstraintTable;
 import dev.mathops.schema.mathops.TableTable;
 import dev.mathops.schema.term.TermWeekTable;
+import dev.mathops.text.builder.SimpleBuilder;
 
 import java.util.ArrayList;
 import java.util.List;

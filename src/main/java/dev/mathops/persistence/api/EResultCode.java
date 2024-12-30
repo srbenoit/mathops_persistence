@@ -1,6 +1,6 @@
 package dev.mathops.persistence.api;
 
-import dev.mathops.commons.builder.SimpleBuilder;
+import dev.mathops.text.builder.SimpleBuilder;
 
 /**
  * Possible result codes from database API operations.

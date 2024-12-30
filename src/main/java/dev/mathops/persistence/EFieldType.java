@@ -1,7 +1,7 @@
 package dev.mathops.persistence;
 
-import dev.mathops.commons.builder.SimpleBuilder;
 import dev.mathops.commons.log.Log;
+import dev.mathops.text.builder.SimpleBuilder;
 
 import java.sql.Blob;
 import java.time.LocalDate;

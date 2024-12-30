@@ -1,7 +1,7 @@
 package dev.mathops.persistence;
 
-import dev.mathops.commons.builder.SimpleBuilder;
 import dev.mathops.persistence.constraint.AbstractFieldConstraint;
+import dev.mathops.text.builder.SimpleBuilder;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;

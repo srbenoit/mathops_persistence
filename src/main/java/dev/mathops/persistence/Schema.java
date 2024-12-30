@@ -1,6 +1,6 @@
 package dev.mathops.persistence;
 
-import dev.mathops.commons.builder.SimpleBuilder;
+import dev.mathops.text.builder.SimpleBuilder;
 
 /**
  * An immutable definition of a schema.  Every table exists within one schema, and the tuple of the schema name and

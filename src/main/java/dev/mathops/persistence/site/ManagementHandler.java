@@ -1,11 +1,11 @@
 package dev.mathops.persistence.site;
 
-import dev.mathops.commons.builder.HtmlBuilder;
 import dev.mathops.commons.log.Log;
 import dev.mathops.persistence.site.session.Login;
 import dev.mathops.persistence.site.session.LoginResult;
 import dev.mathops.persistence.site.session.Session;
 import dev.mathops.persistence.site.session.SessionManager;
+import dev.mathops.text.builder.HtmlBuilder;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 

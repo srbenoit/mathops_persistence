@@ -1,6 +1,6 @@
 package dev.mathops.persistence.constraint;
 
-import dev.mathops.commons.builder.SimpleBuilder;
+import dev.mathops.text.builder.SimpleBuilder;
 
 /**
  * A field constraint for String fields that specifies a minimum and maximum length, in characters.

@@ -1,11 +1,11 @@
 package dev.mathops.persistence.site.session;
 
-import dev.mathops.commons.builder.HtmlBuilder;
+import dev.mathops.commons.HexEncoder;
 import dev.mathops.commons.file.FileLoader;
 import dev.mathops.commons.log.Log;
-import dev.mathops.commons.parser.HexEncoder;
-import dev.mathops.commons.parser.ParsingException;
-import dev.mathops.commons.parser.json.JSONParser;
+import dev.mathops.text.builder.HtmlBuilder;
+import dev.mathops.text.parser.ParsingException;
+import dev.mathops.text.parser.json.JSONParser;
 
 import java.io.File;
 import java.io.FileWriter;

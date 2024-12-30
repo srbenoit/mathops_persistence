@@ -1,12 +1,12 @@
 package dev.mathops.persistence.site;
 
 import dev.mathops.commons.CoreConstants;
-import dev.mathops.commons.builder.HtmlBuilder;
 import dev.mathops.persistence.EFieldType;
 import dev.mathops.persistence.Field;
 import dev.mathops.persistence.Table;
 import dev.mathops.persistence.constraint.AbstractFieldConstraint;
 import dev.mathops.schema.AllTables;
+import dev.mathops.text.builder.HtmlBuilder;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
