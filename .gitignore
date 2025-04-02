@@ -40,3 +40,6 @@ bin/
 
 ### Mac OS ###
 .DS_Store
+/jars/mathops_commons.jar
+/jars/ROOT.jar
+/jars/ROOT.war
