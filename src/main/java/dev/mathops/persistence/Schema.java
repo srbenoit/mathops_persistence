@@ -1,5 +1,6 @@
 package dev.mathops.persistence;
 
+import dev.mathops.db.table.NameUtils;
 import dev.mathops.text.builder.SimpleBuilder;
 
 /**

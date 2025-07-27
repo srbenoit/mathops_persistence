@@ -1,6 +1,6 @@
 package dev.mathops.schema;
 
-import dev.mathops.persistence.Table;
+import dev.mathops.db.table.Table;
 import dev.mathops.schema.main.HoldTypeTable;
 import dev.mathops.schema.main.LocalLoginTable;
 import dev.mathops.schema.main.ParameterTable;
@@ -20,7 +20,7 @@ import dev.mathops.schema.mathops.StringEnumeratedConstraintTable;
 import dev.mathops.schema.mathops.StringLengthConstraintTable;
 import dev.mathops.schema.mathops.TableTable;
 import dev.mathops.schema.term.TermWeekTable;
-import dev.mathops.text.builder.SimpleBuilder;
+import dev.mathops.text.builder.CharSimpleBuilder;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -77,6 +77,6 @@ public final class AllTables {
     @Override
     public String toString() {
 
-        return SimpleBuilder.concat("PrimarySchema{tables=", this.tables, "}");
+        return CharSimpleBuilder.concat("PrimarySchema{tables=", this.tables, "}");
     }
 }

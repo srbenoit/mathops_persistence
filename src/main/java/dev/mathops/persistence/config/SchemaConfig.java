@@ -1,6 +1,6 @@
 package dev.mathops.persistence.config;
 
-import dev.mathops.persistence.Table;
+import dev.mathops.db.table.Table;
 
 import java.util.HashMap;
 import java.util.Map;

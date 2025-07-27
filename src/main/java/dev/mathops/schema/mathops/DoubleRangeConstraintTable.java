@@ -1,9 +1,9 @@
 package dev.mathops.schema.mathops;
 
-import dev.mathops.persistence.EFieldRole;
-import dev.mathops.persistence.EFieldType;
-import dev.mathops.persistence.Field;
-import dev.mathops.persistence.Table;
+import dev.mathops.db.table.EFieldRole;
+import dev.mathops.db.table.EFieldType;
+import dev.mathops.db.table.Field;
+import dev.mathops.db.table.Table;
 
 /**
  * The "DoubleRangeConstraint" table specification within the "persistence" group of the "mathops" schema.

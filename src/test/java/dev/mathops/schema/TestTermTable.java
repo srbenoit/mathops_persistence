@@ -1,11 +1,11 @@
 package dev.mathops.schema;
 
-import dev.mathops.persistence.Field;
-import dev.mathops.persistence.SelectionCriteria;
-import dev.mathops.persistence.Table;
-import dev.mathops.persistence.criteria.AbstractFieldCriterion;
-import dev.mathops.persistence.criteria.ENumericMatchType;
-import dev.mathops.persistence.criteria.IntegerFieldCriterion;
+import dev.mathops.db.table.Field;
+import dev.mathops.db.table.SelectionCriteria;
+import dev.mathops.db.table.Table;
+import dev.mathops.db.table.criteria.AbstractFieldCriterion;
+import dev.mathops.db.table.criteria.ENumericMatchType;
+import dev.mathops.db.table.criteria.IntegerFieldCriterion;
 import dev.mathops.schema.main.TermTable;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;

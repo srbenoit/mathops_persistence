@@ -1,6 +1,6 @@
 package dev.mathops.persistence.config;
 
-import dev.mathops.persistence.IImplementation;
+import dev.mathops.db.table.impl.IImplementation;
 
 /**
  * The configuration of an implementation.

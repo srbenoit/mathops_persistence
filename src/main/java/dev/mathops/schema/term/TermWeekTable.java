@@ -1,9 +1,9 @@
 package dev.mathops.schema.term;
 
-import dev.mathops.persistence.EFieldRole;
-import dev.mathops.persistence.EFieldType;
-import dev.mathops.persistence.Field;
-import dev.mathops.persistence.Table;
+import dev.mathops.db.table.EFieldRole;
+import dev.mathops.db.table.EFieldType;
+import dev.mathops.db.table.Field;
+import dev.mathops.db.table.Table;
 
 /**
  * The "Term"Week table specification within the "system" schema of the "term*" tablespace.

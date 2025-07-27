@@ -1,9 +1,9 @@
 package dev.mathops.persistence.api;
 
-import dev.mathops.persistence.Row;
-import dev.mathops.persistence.SelectionCriteria;
-import dev.mathops.persistence.Table;
-import dev.mathops.persistence.UpdatedValues;
+import dev.mathops.db.table.Row;
+import dev.mathops.db.table.SelectionCriteria;
+import dev.mathops.db.table.Table;
+import dev.mathops.db.table.UpdatedValues;
 
 import java.io.IOException;
 import java.io.InputStream;

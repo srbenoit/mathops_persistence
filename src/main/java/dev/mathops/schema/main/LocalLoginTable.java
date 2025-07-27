@@ -1,10 +1,10 @@
 package dev.mathops.schema.main;
 
-import dev.mathops.persistence.EFieldRole;
-import dev.mathops.persistence.EFieldType;
-import dev.mathops.persistence.Field;
-import dev.mathops.persistence.Table;
-import dev.mathops.persistence.constraint.StringLengthConstraint;
+import dev.mathops.db.table.EFieldRole;
+import dev.mathops.db.table.EFieldType;
+import dev.mathops.db.table.Table;
+import dev.mathops.db.table.constraint.StringLengthConstraint;
+import dev.mathops.db.table.Field;
 
 /**
  * The "LocalLogin" table specification within the "system" schema of the "main" tablespace.

@@ -1,6 +1,6 @@
 package dev.mathops.persistence.api;
 
-import dev.mathops.persistence.Row;
+import dev.mathops.db.table.Row;
 
 import java.util.List;
 
