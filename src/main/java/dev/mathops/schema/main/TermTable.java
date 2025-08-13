@@ -2,10 +2,11 @@ package dev.mathops.schema.main;
 
 import dev.mathops.db.table.EFieldRole;
 import dev.mathops.db.table.EFieldType;
+import dev.mathops.db.table.Field;
+import dev.mathops.db.table.FieldDef;
 import dev.mathops.db.table.SelectionCriteria;
 import dev.mathops.db.table.Table;
 import dev.mathops.db.table.constraint.IntegerRangeConstraint;
-import dev.mathops.db.table.Field;
 import dev.mathops.db.table.criteria.ENumericMatchType;
 import dev.mathops.db.table.criteria.IntegerFieldCriterion;
 
@@ -70,8 +71,9 @@ public final class TermTable extends Table {
      * for the prior term, -2 for the term prior to the prior term, etc.  At each transition between terms, all records
      * are updated to increment their active index.
      */
-    public static final Field F_ACTIVE_INDEX = new Field("active_index", EFieldType.LOCAL_DATE, EFieldRole.NOT_NULL,
-            "The active index (0 for the current active term, +1 for the next term, -1 for the prior term, etc.).");
+    public static final Field F_ACTIVE_INDEX = new Field(new FieldDef("active_index", EFieldType.LOCAL_DATE,
+            "The active index (0 for the current active term, +1 for the next term, -1 for the prior term, etc.)."),
+            EFieldRole.NOT_NULL);
 
     /** The last day students may drop the course. */
     private static final Field F_DROP_DEADLINE;
@@ -83,20 +85,20 @@ public final class TermTable extends Table {
     public static final TermTable INSTANCE;
 
     static {
-        F_TERM = new Field("term", EFieldType.INTEGER, EFieldRole.PARTITION_KEY,
+        F_TERM = new Field(new FieldDef("term", EFieldType.INTEGER,
                 "The term ID - in the form YYYYNN, where NN is 30 for Spring, 60 for Summer, 90 for Fall.",
-                new IntegerRangeConstraint("term_id_range", 100000, 999999));
-        F_START_DATE = new Field("start_date", EFieldType.LOCAL_DATE, EFieldRole.NOT_NULL,
-                "The first day of the term (not the first day of classes).");
-        F_END_DATE = new Field("end_date", EFieldType.LOCAL_DATE, EFieldRole.NOT_NULL,
-                "The last day of the term (not the last day of classes).");
-        F_ACADEMIC_YEAR = new Field("academic_year", EFieldType.INTEGER, EFieldRole.NOT_NULL,
+                new IntegerRangeConstraint("term_id_range", 100000, 999999)), EFieldRole.PARTITION_KEY);
+        F_START_DATE = new Field(new FieldDef("start_date", EFieldType.LOCAL_DATE,
+                "The first day of the term (not the first day of classes)."), EFieldRole.NOT_NULL);
+        F_END_DATE = new Field(new FieldDef("end_date", EFieldType.LOCAL_DATE,
+                "The last day of the term (not the last day of classes)."), EFieldRole.NOT_NULL);
+        F_ACADEMIC_YEAR = new Field(new FieldDef("academic_year", EFieldType.INTEGER,
                 "The academic year, such as '2324' to indicate the 2023-2024 academic year.",
-                new IntegerRangeConstraint("academic_year_range", 1000, 9999));
-        F_DROP_DEADLINE = new Field("drop_deadline", EFieldType.LOCAL_DATE, EFieldRole.NOT_NULL,
-                "The deadline date to drop courses this term.");
-        F_WITHDRAW_DEADLINE = new Field("withdraw_deadline", EFieldType.LOCAL_DATE,
-                EFieldRole.NOT_NULL, "The deadline date to withdraw from courses this term.");
+                new IntegerRangeConstraint("academic_year_range", 1000, 9999)), EFieldRole.NOT_NULL);
+        F_DROP_DEADLINE = new Field(new FieldDef("drop_deadline", EFieldType.LOCAL_DATE,
+                "The deadline date to drop courses this term."), EFieldRole.NOT_NULL);
+        F_WITHDRAW_DEADLINE = new Field(new FieldDef("withdraw_deadline", EFieldType.LOCAL_DATE,
+                "The deadline date to withdraw from courses this term."), EFieldRole.NOT_NULL);
 
         INSTANCE = new TermTable();
     }

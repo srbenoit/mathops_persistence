@@ -2,11 +2,12 @@ package dev.mathops.schema.main;
 
 import dev.mathops.db.table.EFieldRole;
 import dev.mathops.db.table.EFieldType;
+import dev.mathops.db.table.Field;
+import dev.mathops.db.table.FieldDef;
 import dev.mathops.db.table.SelectionCriteria;
 import dev.mathops.db.table.Table;
 import dev.mathops.db.table.constraint.IntegerRangeConstraint;
 import dev.mathops.db.table.constraint.StringLengthConstraint;
-import dev.mathops.db.table.Field;
 import dev.mathops.db.table.criteria.ENumericMatchType;
 import dev.mathops.db.table.criteria.IntegerFieldCriterion;
 
@@ -17,8 +18,9 @@ public final class SchoolTable extends Table {
 
     /** The table description (HTML). */
     private static final String DESCR = "<p>Each row stores information on a single K-12 school from which a "
-            + "student graduated.  These are used to generate reports for K-12 schools on the performance or "
-            + "readiness of their graduates.</p>";
+                                        + "student graduated.  These are used to generate reports for K-12 schools on" +
+                                        " the performance or "
+                                        + "readiness of their graduates.</p>";
 
     /** The school's CEEB code, unique among all K-12 schools. */
     private static final Field F_CEEB_CODE;
@@ -48,25 +50,25 @@ public final class SchoolTable extends Table {
     public static final SchoolTable INSTANCE;
 
     static {
-        F_CEEB_CODE = new Field("ceeb_code", EFieldType.INTEGER, EFieldRole.PARTITION_KEY,
+        F_CEEB_CODE = new Field(new FieldDef("ceeb_code", EFieldType.INTEGER,
                 "The CEEB code of the high school.",
-                new IntegerRangeConstraint("ceeb_code_range", 0, 999999));
-        F_NAME = new Field("name", EFieldType.STRING, EFieldRole.NOT_NULL,
-                "The school name.");
-        F_MAILING_ADDR = new Field("mailing_addr", EFieldType.STRING, EFieldRole.NOT_NULL,
+                new IntegerRangeConstraint("ceeb_code_range", 0, 999999)), EFieldRole.PARTITION_KEY);
+        F_NAME = new Field(new FieldDef("name", EFieldType.STRING,
+                "The school name."), EFieldRole.NOT_NULL);
+        F_MAILING_ADDR = new Field(new FieldDef("mailing_addr", EFieldType.STRING,
                 "The school's mailing address, suitable for use on an envelope addressed to the school.",
-                new StringLengthConstraint("mailing_addr_length", 1, 32));
-        F_CITY = new Field("city", EFieldType.STRING, EFieldRole.NOT_NULL,
+                new StringLengthConstraint("mailing_addr_length", 1, 32)), EFieldRole.NOT_NULL);
+        F_CITY = new Field(new FieldDef("city", EFieldType.STRING,
                 "The city of the school's mailing address, suitable for use on an envelope addressed to the school.",
-                new StringLengthConstraint("city_length", 1, 32));
-        F_STATE = new Field("state", EFieldType.STRING, EFieldRole.NOT_NULL,
+                new StringLengthConstraint("city_length", 1, 32)), EFieldRole.NOT_NULL);
+        F_STATE = new Field(new FieldDef("state", EFieldType.STRING,
                 "The state (two-letter code) of the school's mailing address, suitable for use on an envelope "
-                        + "addressed to the school.",
-                new StringLengthConstraint("state_length", 2, 2));
-        F_ZIP_CODE = new Field("zip_code", EFieldType.STRING, EFieldRole.NOT_NULL,
+                + "addressed to the school.",
+                new StringLengthConstraint("state_length", 2, 2)), EFieldRole.NOT_NULL);
+        F_ZIP_CODE = new Field(new FieldDef("zip_code", EFieldType.STRING,
                 "The zip code (5-digit or 5+4) of the school's mailing address, suitable for use on an envelope "
-                        + "addressed to the school.",
-                new StringLengthConstraint("zip_code_length", 5, 10));
+                + "addressed to the school.",
+                new StringLengthConstraint("zip_code_length", 5, 10)), EFieldRole.NOT_NULL);
 
         INSTANCE = new SchoolTable();
     }
@@ -76,7 +78,8 @@ public final class SchoolTable extends Table {
      */
     private SchoolTable() {
 
-        super("main", "system", "school", DESCR, null, F_CEEB_CODE, F_NAME, F_MAILING_ADDR, F_CITY, F_STATE, F_ZIP_CODE);
+        super("main", "system", "school", DESCR, null, F_CEEB_CODE, F_NAME, F_MAILING_ADDR, F_CITY, F_STATE,
+                F_ZIP_CODE);
     }
 
     /**

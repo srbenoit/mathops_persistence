@@ -3,6 +3,7 @@ package dev.mathops.schema.main;
 import dev.mathops.db.table.EFieldRole;
 import dev.mathops.db.table.EFieldType;
 import dev.mathops.db.table.Field;
+import dev.mathops.db.table.FieldDef;
 import dev.mathops.db.table.Table;
 
 /**
@@ -12,7 +13,7 @@ public final class ParameterTable extends Table {
 
     /** The table description (HTML). */
     private static final String DESCR = "<p>Each row represents a named collection of parameter values that can "
-            + "control operation of system functions like batch jobs, reports, etc.</p>";
+                                        + "control operation of system functions like batch jobs, reports, etc.</p>";
 
     /** The role ID. */
     private static final Field F_NAME;
@@ -63,36 +64,36 @@ public final class ParameterTable extends Table {
     public static final ParameterTable INSTANCE;
 
     static {
-        F_NAME = new Field("name", EFieldType.STRING, EFieldRole.PARTITION_KEY,
-                "The name of the parameter set.");
-        F_STRING_1 = new Field("string_1", EFieldType.STRING, EFieldRole.NULLABLE,
-                "The first string parameter value.");
-        F_STRING_2 = new Field("string_2", EFieldType.STRING, EFieldRole.NULLABLE,
-                "The first string parameter value.");
-        F_STRING_3 = new Field("string_3", EFieldType.STRING, EFieldRole.NULLABLE,
-                "The first string parameter value.");
-        F_STRING_4 = new Field("string_4", EFieldType.STRING, EFieldRole.NULLABLE,
-                "The first string parameter value.");
-        F_STRING_5 = new Field("string_5", EFieldType.STRING, EFieldRole.NULLABLE,
-                "The first string parameter value.");
-        F_INTEGER_1 = new Field("integer_1", EFieldType.INTEGER, EFieldRole.NULLABLE,
-                "The first integer parameter value.");
-        F_INTEGER_2 = new Field("integer_2", EFieldType.INTEGER, EFieldRole.NULLABLE,
-                "The first integer parameter value.");
-        F_INTEGER_3 = new Field("integer_3", EFieldType.INTEGER, EFieldRole.NULLABLE,
-                "The first integer parameter value.");
-        F_INTEGER_4 = new Field("integer_4", EFieldType.INTEGER, EFieldRole.NULLABLE,
-                "The first integer parameter value.");
-        F_INTEGER_5 = new Field("integer_5", EFieldType.INTEGER, EFieldRole.NULLABLE,
-                "The first integer parameter value.");
-        F_DATE_1 = new Field("date_1", EFieldType.LOCAL_DATE, EFieldRole.NULLABLE,
-                "The first date parameter value.");
-        F_DATE_2 = new Field("date_2", EFieldType.LOCAL_DATE, EFieldRole.NULLABLE,
-                "The second date parameter value.");
-        F_TIME_1 = new Field("time_1", EFieldType.LOCAL_TIME, EFieldRole.NULLABLE,
-                "The first time parameter value.");
-        F_TIME_2 = new Field("time_2", EFieldType.LOCAL_TIME, EFieldRole.NULLABLE,
-                "The second time parameter value.");
+        F_NAME = new Field(new FieldDef("name", EFieldType.STRING,
+                "The name of the parameter set."), EFieldRole.PARTITION_KEY);
+        F_STRING_1 = new Field(new FieldDef("string_1", EFieldType.STRING,
+                "The first string parameter value."), EFieldRole.NULLABLE);
+        F_STRING_2 = new Field(new FieldDef("string_2", EFieldType.STRING,
+                "The first string parameter value."), EFieldRole.NULLABLE);
+        F_STRING_3 = new Field(new FieldDef("string_3", EFieldType.STRING,
+                "The first string parameter value."), EFieldRole.NULLABLE);
+        F_STRING_4 = new Field(new FieldDef("string_4", EFieldType.STRING,
+                "The first string parameter value."), EFieldRole.NULLABLE);
+        F_STRING_5 = new Field(new FieldDef("string_5", EFieldType.STRING,
+                "The first string parameter value."), EFieldRole.NULLABLE);
+        F_INTEGER_1 = new Field(new FieldDef("integer_1", EFieldType.INTEGER,
+                "The first integer parameter value."), EFieldRole.NULLABLE);
+        F_INTEGER_2 = new Field(new FieldDef("integer_2", EFieldType.INTEGER,
+                "The first integer parameter value."), EFieldRole.NULLABLE);
+        F_INTEGER_3 = new Field(new FieldDef("integer_3", EFieldType.INTEGER,
+                "The first integer parameter value."), EFieldRole.NULLABLE);
+        F_INTEGER_4 = new Field(new FieldDef("integer_4", EFieldType.INTEGER,
+                "The first integer parameter value."), EFieldRole.NULLABLE);
+        F_INTEGER_5 = new Field(new FieldDef("integer_5", EFieldType.INTEGER,
+                "The first integer parameter value."), EFieldRole.NULLABLE);
+        F_DATE_1 = new Field(new FieldDef("date_1", EFieldType.LOCAL_DATE,
+                "The first date parameter value."), EFieldRole.NULLABLE);
+        F_DATE_2 = new Field(new FieldDef("date_2", EFieldType.LOCAL_DATE,
+                "The second date parameter value."), EFieldRole.NULLABLE);
+        F_TIME_1 = new Field(new FieldDef("time_1", EFieldType.LOCAL_TIME,
+                "The first time parameter value."), EFieldRole.NULLABLE);
+        F_TIME_2 = new Field(new FieldDef("time_2", EFieldType.LOCAL_TIME,
+                "The second time parameter value."), EFieldRole.NULLABLE);
 
         INSTANCE = new ParameterTable();
     }

@@ -3,6 +3,7 @@ package dev.mathops.schema.mathops;
 import dev.mathops.db.table.EFieldRole;
 import dev.mathops.db.table.EFieldType;
 import dev.mathops.db.table.Field;
+import dev.mathops.db.table.FieldDef;
 import dev.mathops.db.table.Table;
 
 /**
@@ -18,7 +19,8 @@ public final class StringLengthConstraintTable extends Table {
 
     /** The table description (HTML). */
     private static final String DESCR = "<p>Each row represents a single length constraint on a single string-valued "
-            + "field within a table. There cam be only one string length constraint on a field.</p>";
+                                        + "field within a table. There cam be only one string length constraint on a " +
+                                        "field.</p>";
 
     /** The schema name. */
     private static final Field F_SCHEMA;
@@ -42,18 +44,19 @@ public final class StringLengthConstraintTable extends Table {
     public static final StringLengthConstraintTable INSTANCE;
 
     static {
-        F_SCHEMA = new Field("schema", EFieldType.STRING, EFieldRole.PARTITION_KEY,
-                "The name of the schema that contains the table.");
-        F_TABLE = new Field("table", EFieldType.STRING, EFieldRole.PARTITION_KEY,
-                "The table name.");
-        F_FIELD = new Field("field", EFieldType.STRING, EFieldRole.PARTITION_KEY,
-                "The field name");
-        F_MIN_LENGTH = new Field("min_length", EFieldType.INTEGER, EFieldRole.NOT_NULL,
-                "The minimum allowed string length, in UTF-16 code units.");
-        F_MAX_LENGTH = new Field("max_length", EFieldType.INTEGER, EFieldRole.NOT_NULL,
-                "The maximum allowed string length, in UTF-16 code units.");
-        F_DESCRIPTION = new Field("description", EFieldType.STRING, EFieldRole.NOT_NULL,
-                "A description of the constraint for presentation in automatically-generated documentation.");
+        F_SCHEMA = new Field(new FieldDef("schema", EFieldType.STRING,
+                "The name of the schema that contains the table."), EFieldRole.PARTITION_KEY);
+        F_TABLE = new Field(new FieldDef("table", EFieldType.STRING,
+                "The table name."), EFieldRole.PARTITION_KEY);
+        F_FIELD = new Field(new FieldDef("field", EFieldType.STRING,
+                "The field name"), EFieldRole.PARTITION_KEY);
+        F_MIN_LENGTH = new Field(new FieldDef("min_length", EFieldType.INTEGER,
+                "The minimum allowed string length, in UTF-16 code units."), EFieldRole.NOT_NULL);
+        F_MAX_LENGTH = new Field(new FieldDef("max_length", EFieldType.INTEGER,
+                "The maximum allowed string length, in UTF-16 code units."), EFieldRole.NOT_NULL);
+        F_DESCRIPTION = new Field(new FieldDef("description", EFieldType.STRING,
+                "A description of the constraint for presentation in automatically-generated documentation."),
+                EFieldRole.NOT_NULL);
 
         INSTANCE = new StringLengthConstraintTable();
     }

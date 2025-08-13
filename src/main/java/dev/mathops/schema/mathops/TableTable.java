@@ -3,6 +3,7 @@ package dev.mathops.schema.mathops;
 import dev.mathops.db.table.EFieldRole;
 import dev.mathops.db.table.EFieldType;
 import dev.mathops.db.table.Field;
+import dev.mathops.db.table.FieldDef;
 import dev.mathops.db.table.Table;
 
 /**
@@ -17,8 +18,10 @@ public final class TableTable extends Table {
 
     /** The table description (HTML). */
     private static final String DESCR = "<p>Each row stores the configuration of a single table.  The combination of "
-            + "schema name and table name must be unique across all installed tables.  Table group name does not "
-            + "take part in this primary key function, but is used to group tables within a schema for display.</p>";
+                                        + "schema name and table name must be unique across all installed tables.  " +
+                                        "Table group name does not "
+                                        + "take part in this primary key function, but is used to group tables within" +
+                                        " a schema for display.</p>";
 
     /** The schema name. */
     private static final Field F_SCHEMA;
@@ -39,16 +42,17 @@ public final class TableTable extends Table {
     public static final TableTable INSTANCE;
 
     static {
-        F_SCHEMA = new Field("schema", EFieldType.STRING, EFieldRole.PARTITION_KEY,
-                "The name of the schema that contains the table.");
-        F_GROUP = new Field("group", EFieldType.STRING, EFieldRole.NOT_NULL,
-                "The table group name.");
-        F_TABLE = new Field("table", EFieldType.STRING, EFieldRole.PARTITION_KEY,
-                "The table name.");
-        F_DESCRIPTION = new Field("description", EFieldType.STRING, EFieldRole.NOT_NULL,
-                "A description of the table for presentation in automatically-generated documentation.");
-        F_EXAMPLES = new Field("examples", EFieldType.STRING, EFieldRole.NULLABLE,
-                "Optional examples of how this table is used.");
+        F_SCHEMA = new Field(new FieldDef("schema", EFieldType.STRING,
+                "The name of the schema that contains the table."), EFieldRole.PARTITION_KEY);
+        F_GROUP = new Field(new FieldDef("group", EFieldType.STRING,
+                "The table group name."), EFieldRole.NOT_NULL);
+        F_TABLE = new Field(new FieldDef("table", EFieldType.STRING,
+                "The table name."), EFieldRole.PARTITION_KEY);
+        F_DESCRIPTION = new Field(new FieldDef("description", EFieldType.STRING,
+                "A description of the table for presentation in automatically-generated documentation."),
+                EFieldRole.NOT_NULL);
+        F_EXAMPLES = new Field(new FieldDef("examples", EFieldType.STRING,
+                "Optional examples of how this table is used."), EFieldRole.NULLABLE);
 
         INSTANCE = new TableTable();
     }

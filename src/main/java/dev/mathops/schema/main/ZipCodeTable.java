@@ -2,9 +2,11 @@ package dev.mathops.schema.main;
 
 import dev.mathops.db.table.EFieldRole;
 import dev.mathops.db.table.EFieldType;
+import dev.mathops.db.table.Field;
+import dev.mathops.db.table.FieldDef;
 import dev.mathops.db.table.Table;
 import dev.mathops.db.table.constraint.StringLengthConstraint;
-import dev.mathops.db.table.Field;
+
 /**
  * The "ZipCode" table specification within the "system" schema of the "main" tablespace.
  */
@@ -26,15 +28,15 @@ public final class ZipCodeTable extends Table {
     public static final ZipCodeTable INSTANCE;
 
     static {
-        F_ZIP_CODE = new Field("zip_code", EFieldType.STRING, EFieldRole.NOT_NULL,
+        F_ZIP_CODE = new Field(new FieldDef("zip_code", EFieldType.STRING,
                 "The zip code (5-digit or 5+4).",
-                new StringLengthConstraint("zip_code_length", 5, 10));
-        F_CITY = new Field("city", EFieldType.STRING, EFieldRole.NOT_NULL,
+                new StringLengthConstraint("zip_code_length", 5, 10)), EFieldRole.NOT_NULL);
+        F_CITY = new Field(new FieldDef("city", EFieldType.STRING,
                 "The city.",
-                new StringLengthConstraint("city_length", 1, 32));
-        F_STATE = new Field("state", EFieldType.STRING, EFieldRole.NOT_NULL,
+                new StringLengthConstraint("city_length", 1, 32)), EFieldRole.NOT_NULL);
+        F_STATE = new Field(new FieldDef("state", EFieldType.STRING,
                 "The state.",
-                new StringLengthConstraint("state_length", 2, 2));
+                new StringLengthConstraint("state_length", 2, 2)), EFieldRole.NOT_NULL);
 
         INSTANCE = new ZipCodeTable();
     }

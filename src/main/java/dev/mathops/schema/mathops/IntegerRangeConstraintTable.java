@@ -3,6 +3,7 @@ package dev.mathops.schema.mathops;
 import dev.mathops.db.table.EFieldRole;
 import dev.mathops.db.table.EFieldType;
 import dev.mathops.db.table.Field;
+import dev.mathops.db.table.FieldDef;
 import dev.mathops.db.table.Table;
 
 /**
@@ -18,7 +19,8 @@ public final class IntegerRangeConstraintTable extends Table {
 
     /** The table description (HTML). */
     private static final String DESCR = "<p>Each row represents a single range constraint on a single integer-valued "
-            + "field within a table. There cam be only one integer range constraint on a field.</p>";
+                                        + "field within a table. There cam be only one integer range constraint on a " +
+                                        "field.</p>";
 
     /** The schema name. */
     private static final Field F_SCHEMA;
@@ -42,18 +44,19 @@ public final class IntegerRangeConstraintTable extends Table {
     public static final IntegerRangeConstraintTable INSTANCE;
 
     static {
-        F_SCHEMA = new Field("schema", EFieldType.STRING, EFieldRole.PARTITION_KEY,
-                "The name of the schema that contains the table.");
-        F_TABLE = new Field("table", EFieldType.STRING, EFieldRole.PARTITION_KEY,
-                "The table name.");
-        F_FIELD = new Field("field", EFieldType.STRING, EFieldRole.PARTITION_KEY,
-                "The field name");
-        F_MIN_VALUE = new Field("min_value", EFieldType.INTEGER, EFieldRole.NOT_NULL,
-                "The minimum allowed value.");
-        F_MAX_VALUE = new Field("max_value", EFieldType.INTEGER, EFieldRole.NOT_NULL,
-                "The maximum allowed value.");
-        F_DESCRIPTION = new Field("description", EFieldType.STRING, EFieldRole.NOT_NULL,
-                "A description of the constraint for presentation in automatically-generated documentation.");
+        F_SCHEMA = new Field(new FieldDef("schema", EFieldType.STRING,
+                "The name of the schema that contains the table."), EFieldRole.PARTITION_KEY);
+        F_TABLE = new Field(new FieldDef("table", EFieldType.STRING,
+                "The table name."), EFieldRole.PARTITION_KEY);
+        F_FIELD = new Field(new FieldDef("field", EFieldType.STRING,
+                "The field name"), EFieldRole.PARTITION_KEY);
+        F_MIN_VALUE = new Field(new FieldDef("min_value", EFieldType.INTEGER,
+                "The minimum allowed value."), EFieldRole.NOT_NULL);
+        F_MAX_VALUE = new Field(new FieldDef("max_value", EFieldType.INTEGER,
+                "The maximum allowed value."), EFieldRole.NOT_NULL);
+        F_DESCRIPTION = new Field(new FieldDef("description", EFieldType.STRING,
+                "A description of the constraint for presentation in automatically-generated documentation."),
+                EFieldRole.NOT_NULL);
 
         INSTANCE = new IntegerRangeConstraintTable();
     }
@@ -64,7 +67,6 @@ public final class IntegerRangeConstraintTable extends Table {
     private IntegerRangeConstraintTable() {
 
         super("mathops", "persistence", "integer_range_constraint", DESCR, null, F_SCHEMA, F_TABLE, F_FIELD,
-                F_MIN_VALUE,
-                F_MAX_VALUE, F_DESCRIPTION);
+                F_MIN_VALUE, F_MAX_VALUE, F_DESCRIPTION);
     }
 }

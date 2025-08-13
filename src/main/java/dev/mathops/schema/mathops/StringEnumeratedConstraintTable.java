@@ -3,6 +3,7 @@ package dev.mathops.schema.mathops;
 import dev.mathops.db.table.EFieldRole;
 import dev.mathops.db.table.EFieldType;
 import dev.mathops.db.table.Field;
+import dev.mathops.db.table.FieldDef;
 import dev.mathops.db.table.Table;
 
 /**
@@ -20,9 +21,11 @@ public final class StringEnumeratedConstraintTable extends Table {
 
     /** The table description (HTML). */
     private static final String DESCR = "<p>Each row represents a single allowed enumerated value of a single "
-            + "string-valued field within a table. There can be many such constraints on a field. The existence of "
-            + "at least one such constraint indicates field values may only take on an allowed set of enumerated "
-            + "string values, which are given by the set of all such constraint rows</p>";
+                                        + "string-valued field within a table. There can be many such constraints on " +
+                                        "a field. The existence of "
+                                        + "at least one such constraint indicates field values may only take on an " +
+                                        "allowed set of enumerated "
+                                        + "string values, which are given by the set of all such constraint rows</p>";
 
     /** The schema name. */
     private static final Field F_SCHEMA;
@@ -43,16 +46,17 @@ public final class StringEnumeratedConstraintTable extends Table {
     public static final StringEnumeratedConstraintTable INSTANCE;
 
     static {
-        F_SCHEMA = new Field("schema", EFieldType.STRING, EFieldRole.PARTITION_KEY,
-                "The name of the schema that contains the table.");
-        F_TABLE = new Field("table", EFieldType.STRING, EFieldRole.PARTITION_KEY,
-                "The table name.");
-        F_FIELD = new Field("field", EFieldType.STRING, EFieldRole.NOT_NULL,
-                "The field name");
-        F_ALLOWED_VALUE = new Field("allowed_value", EFieldType.STRING, EFieldRole.NOT_NULL,
-                "The allowed value.");
-        F_DESCRIPTION = new Field("description", EFieldType.STRING, EFieldRole.NOT_NULL,
-                "A description of the constraint for presentation in automatically-generated documentation.");
+        F_SCHEMA = new Field(new FieldDef("schema", EFieldType.STRING,
+                "The name of the schema that contains the table."), EFieldRole.PARTITION_KEY);
+        F_TABLE = new Field(new FieldDef("table", EFieldType.STRING,
+                "The table name."), EFieldRole.PARTITION_KEY);
+        F_FIELD = new Field(new FieldDef("field", EFieldType.STRING,
+                "The field name"), EFieldRole.NOT_NULL);
+        F_ALLOWED_VALUE = new Field(new FieldDef("allowed_value", EFieldType.STRING,
+                "The allowed value."), EFieldRole.NOT_NULL);
+        F_DESCRIPTION = new Field(new FieldDef("description", EFieldType.STRING,
+                "A description of the constraint for presentation in automatically-generated documentation."),
+                EFieldRole.NOT_NULL);
 
         INSTANCE = new StringEnumeratedConstraintTable();
     }

@@ -2,6 +2,7 @@ package dev.mathops.persistence.site;
 
 import dev.mathops.commons.CoreConstants;
 import dev.mathops.db.table.EFieldType;
+import dev.mathops.db.table.FieldDef;
 import dev.mathops.db.table.Table;
 import dev.mathops.db.table.constraint.AbstractFieldConstraint;
 import dev.mathops.db.table.Field;
@@ -1986,11 +1987,12 @@ final class DocHandler {
                 final int numFields = found.getNumFields();
                 for (int i = 0; i < numFields; ++i) {
                     final Field field = found.getField(i);
+                    final FieldDef def = field.getDef();
 
-                    final String name = field.getName();
-                    final EFieldType type = field.getType();
+                    final String name = def.getName();
+                    final EFieldType type = def.getType();
                     final String typeName = type.name();
-                    final String descr = field.getDescription();
+                    final String descr = def.getDescription();
                     htm.sTr();
                     htm.sTd();
                     htm.addStrings("<code>", name, "</code>");
@@ -2001,9 +2003,9 @@ final class DocHandler {
                     htm.sTd();
                     htm.addString(descr);
 
-                    final int numConstraints = field.getNumConstraints();
+                    final int numConstraints = def.getNumConstraints();
                     for (int j = 0; j < numConstraints; ++j) {
-                        final AbstractFieldConstraint<?> constraint = field.getConstraint(j);
+                        final AbstractFieldConstraint<?> constraint = def.getConstraint(j);
                         final String constraintDesc = constraint.getDescription();
                         htm.br();
                         htm.sSpan("constraint");

@@ -2,6 +2,7 @@ package dev.mathops.schema.main;
 
 import dev.mathops.db.table.EFieldRole;
 import dev.mathops.db.table.EFieldType;
+import dev.mathops.db.table.FieldDef;
 import dev.mathops.db.table.Table;
 import dev.mathops.db.table.constraint.StringEnumeratedConstraint;
 import dev.mathops.db.table.Field;
@@ -30,13 +31,13 @@ public final class RolePermissionTable extends Table {
     public static final RolePermissionTable INSTANCE;
 
     static {
-        F_ROLE_ID = new Field("role_id", EFieldType.STRING, EFieldRole.PARTITION_KEY,
-                "The role ID.");
-        F_ACTIVITY = new Field("activity", EFieldType.STRING, EFieldRole.NOT_NULL,
+        F_ROLE_ID = new Field(new FieldDef("role_id", EFieldType.STRING,
+                "The role ID."), EFieldRole.PARTITION_KEY);
+        F_ACTIVITY = new Field(new FieldDef("activity", EFieldType.STRING,
                 "The activity to which this permission level applies.",
-                new StringEnumeratedConstraint("activity_value", "HOLD"));
-        F_PERM_LVL = new Field("perm_lvl", EFieldType.INTEGER, EFieldRole.NOT_NULL,
-                "The permission level granted to the role.");
+                new StringEnumeratedConstraint("activity_value", "HOLD")), EFieldRole.NOT_NULL);
+        F_PERM_LVL = new Field(new FieldDef("perm_lvl", EFieldType.INTEGER,
+                "The permission level granted to the role."), EFieldRole.NOT_NULL);
 
         INSTANCE = new RolePermissionTable();
     }

@@ -3,6 +3,7 @@ package dev.mathops.schema.main;
 import dev.mathops.db.table.EFieldRole;
 import dev.mathops.db.table.EFieldType;
 import dev.mathops.db.table.Field;
+import dev.mathops.db.table.FieldDef;
 import dev.mathops.db.table.Table;
 
 /**
@@ -25,10 +26,10 @@ public final class RoleTable extends Table {
     public static final RoleTable INSTANCE;
 
     static {
-        F_ROLE_ID = new Field("role_id", EFieldType.STRING, EFieldRole.PARTITION_KEY,
-                "The role ID.");
-        F_ROLE_NAME = new Field("role_name", EFieldType.STRING, EFieldRole.NOT_NULL,
-                "The role name.");
+        F_ROLE_ID = new Field(new FieldDef("role_id", EFieldType.STRING,
+                "The role ID."), EFieldRole.PARTITION_KEY);
+        F_ROLE_NAME = new Field(new FieldDef("role_name", EFieldType.STRING,
+                "The role name."), EFieldRole.NOT_NULL);
 
         INSTANCE = new RoleTable();
     }
